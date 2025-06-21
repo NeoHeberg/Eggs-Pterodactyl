@@ -1,0 +1,51 @@
+{
+    "_comment": "Egg NodeJS pour NeoHeberg - Par Axel Lalaut",
+    "meta": {
+        "version": "PTDL_v2",
+        "update_url": null
+    },
+    "exported_at": "2025-06-08T12:00:00+00:00",
+    "name": "Node.js NeoHeberg",
+    "author": "Axel Lalaut",
+    "description": "Egg Node.js optimisé pour NeoHeberg avec support des versions 12.x à 21.x. Installation automatique des dépendances npm à chaque démarrage.",
+    "features": [
+        "eula"
+    ],
+    "docker_images": {
+        "Nodejs 21": "ghcr.io/parkervcp/yolks:nodejs_21",
+        "Nodejs 20": "ghcr.io/parkervcp/yolks:nodejs_20",
+        "Nodejs 19": "ghcr.io/parkervcp/yolks:nodejs_19",
+        "Nodejs 18": "ghcr.io/parkervcp/yolks:nodejs_18",
+        "Nodejs 17": "ghcr.io/parkervcp/yolks:nodejs_17",
+        "Nodejs 16": "ghcr.io/parkervcp/yolks:nodejs_16",
+        "Nodejs 14": "ghcr.io/parkervcp/yolks:nodejs_14",
+        "Nodejs 12": "ghcr.io/parkervcp/yolks:nodejs_12"
+    },
+    "file_denylist": [],
+    "startup": "if [ -f /home/container/package.json ]; then npm install; fi; node /home/container/{{JS_FILE}}",
+    "config": {
+        "files": "{}",
+        "startup": "{\r\n    \"done\": [\r\n        \") Listening on \",\r\n        \") Ready on \",\r\n        \"listening on\",\r\n        \"Server started\",\r\n        \"App listening\",\r\n        \"ready - started server on\"\r\n    ]\r\n}",
+        "logs": "{}",
+        "stop": "^C"
+    },
+    "scripts": {
+        "installation": {
+            "script": "#!/bin/bash\n# Installation Script pour Node.js NeoHeberg\n\necho \"🚀 Début de l'installation Node.js pour NeoHeberg...\"\n\nmkdir -p /mnt/server\ncd /mnt/server\n\necho \"📁 Création de la structure de base...\"\n\n# Création d'un package.json de base si inexistant\nif [ ! -f package.json ]; then\n    echo \"📦 Création d'un package.json de base...\"\n    cat > package.json << 'EOF'\n{\n  \"name\": \"neoheberg-nodejs-app\",\n  \"version\": \"1.0.0\",\n  \"description\": \"Application Node.js pour NeoHeberg\",\n  \"main\": \"index.js\",\n  \"scripts\": {\n    \"start\": \"node index.js\"\n  },\n  \"dependencies\": {},\n  \"engines\": {\n    \"node\": \">=12.0.0\"\n  }\n}\nEOF\nfi\n\n# Création d'un index.js de base si inexistant\nif [ ! -f index.js ]; then\n    echo \"📄 Création d'un index.js de base...\"\n    cat > index.js << 'EOF'\nconst http = require('http');\nconst port = process.env.PORT || 3000;\n\nconst server = http.createServer((req, res) => {\n  res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });\n  res.end(`\n    <div style=\"font-family: Arial, sans-serif; text-align: center; padding: 50px;\">\n      <h1>🚀 Serveur Node.js NeoHeberg</h1>\n      <p>✅ Votre application fonctionne correctement !</p>\n      <p><strong>Version Node.js:</strong> ${process.version}</p>\n      <p><strong>Port:</strong> ${port}</p>\n      <p style=\"color: #666; margin-top: 30px;\">Modifiez le fichier index.js pour personnaliser votre application</p>\n    </div>\n  `);\n});\n\nserver.listen(port, '0.0.0.0', () => {\n  console.log(`✅ Serveur NeoHeberg démarré sur le port ${port}`);\n  console.log(`🌐 Application accessible sur http://0.0.0.0:${port}`);\n});\n\nprocess.on('SIGTERM', () => {\n  console.log('🛑 Arrêt du serveur...');\n  server.close(() => {\n    console.log('✅ Serveur arrêté proprement');\n    process.exit(0);\n  });\n});\nEOF\nfi\n\necho \"✅ Installation terminée pour NeoHeberg !\"\necho \"📋 Fichiers créés:\"\nls -la\necho \"\"\necho \"ℹ️  Les dépendances npm seront automatiquement installées à chaque démarrage du serveur.\"",
+            "container": "node:18-alpine",
+            "entrypoint": "bash"
+        }
+    },
+    "variables": [
+        {
+            "name": "Fichier JavaScript",
+            "description": "Nom du fichier JavaScript principal à exécuter (ex: index.js, app.js, bot.js, server.js)",
+            "env_variable": "JS_FILE",
+            "default_value": "index.js",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|regex:/^([a-zA-Z0-9._-]+)(\\.js)$/",
+            "field_type": "text"
+        }
+    ]
+}
