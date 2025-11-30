@@ -6,7 +6,7 @@
   },
   "exported_at": "2025-06-08T12:00:00+00:00",
   "name": "Node.js NeoHeberg",
-  "author": "Axel Lalaut, Slownover",
+  "author": "Axel Lalaut",
   "description": "Egg Node.js optimisé pour NeoHeberg avec support des versions 12.x à 24.x. Installation automatique des dépendances npm à chaque démarrage.",
   "features": [
     "eula"
