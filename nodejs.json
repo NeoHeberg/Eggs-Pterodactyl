@@ -24,7 +24,6 @@
     "Nodejs 14": "ghcr.io/parkervcp/yolks:nodejs_14",
     "Nodejs 12": "ghcr.io/parkervcp/yolks:nodejs_12"
   },
-  "file_denylist": [],
   "startup": "if [[ ! -z ${NODE_PACKAGES} ]]; then /usr/local/bin/npm install ${NODE_PACKAGES}; fi; if [[ ! -z ${UNNODE_PACKAGES} ]]; then /usr/local/bin/npm uninstall ${UNNODE_PACKAGES}; fi; if [ -f /home/container/package.json ]; then /usr/local/bin/npm install; fi; /usr/local/bin/node \"/home/container/${MAIN_FILE}\"",
   "config": {
     "files": "{}",
@@ -47,10 +46,7 @@
       "default_value": "",
       "user_viewable": true,
       "user_editable": true,
-      "rules": [
-        "nullable",
-        "string"
-      ],
+      "rules": "nullable|string",
       "sort": null
     },
     {
@@ -70,10 +66,7 @@
       "default_value": "",
       "user_viewable": true,
       "user_editable": true,
-      "rules": [
-        "nullable",
-        "string"
-      ],
+      "rules": "nullable|string",
       "sort": null
     }
   ]
