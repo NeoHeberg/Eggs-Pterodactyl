@@ -60,7 +60,7 @@
       "default_value": "index.js",
       "user_viewable": true,
       "user_editable": true,
-      "rules": ["required", "regex:/^([a-zA-Z0-9._-]+)(\\.js)$/"],
+      "rules": "required|regex:/^([a-zA-Z0-9._-]+)(\\.js)$/",
       "field_type": "text"
     },
     {
