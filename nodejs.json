@@ -46,8 +46,7 @@
       "default_value": "",
       "user_viewable": true,
       "user_editable": true,
-      "rules": "nullable|string",
-      "sort": null
+      "rules": "nullable|string"
     },
     {
       "name": "Fichier principal",
@@ -66,8 +65,7 @@
       "default_value": "",
       "user_viewable": true,
       "user_editable": true,
-      "rules": "nullable|string",
-      "sort": null
+      "rules": "nullable|string"
     }
   ]
 }
