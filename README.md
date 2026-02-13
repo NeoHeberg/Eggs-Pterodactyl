@@ -4,7 +4,7 @@
 |-----|--------|-------------|---------|
 | **Minecraft Vanilla** | [Pterodactyl](https://github.com/pterodactyl) | Egg officiel pour serveur Minecraft Vanilla (version standard). | [MIT](https://github.com/pterodactyl/panel/blob/develop/LICENSE) (Pterodactyl) |
 | **Python** | [parkervcp](https://github.com/parkervcp) | Egg pour exécuter des applications Python. | [MIT](https://github.com/parkervcp/eggs/blob/master/LICENSE) (parkervcp) |
-| **Node.js NeoHeberg** | Axel Lalaut & Slownover | Egg optimisé pour NeoHeberg avec support Node.js 12 à 24, installation automatique des dépendances et affichage personnalisé. | **Propriétaire NeoHeberg** – Toute copie ou réutilisation sans autorisation est interdite. |
+| **Node.js NeoHeberg** | Axel Lalaut & Slownover | Egg optimisé pour NeoHeberg avec support Node.js 12 à 24, installation automatique des dépendances et affichage personnalisé. | **Utilisation libre, modification interdite sans accord – Propriété NeoHeberg** |
 
 ---
 
@@ -27,7 +27,7 @@
   - Installation automatique des dépendances npm à chaque démarrage (via `package.json` ou variables d’environnement).
   - Fichiers par défaut (`index.js`, `package.json`) générés avec un message d’accueil personnalisé incluant le copyright NeoHeberg.
   - Récupération automatique du port alloué par Pterodactyl (`SERVER_PORT`).
-- **Licence** : **Propriétaire**. Cet egg est la propriété exclusive de NeoHeberg. Toute reproduction, modification ou redistribution sans accord écrit préalable est interdite. Il est fourni uniquement pour les besoins de l’infrastructure NeoHeberg.
+- **Licence** : Utilisation autorisée (téléchargement et exécution), mais toute modification, adaptation ou redistribution de versions modifiées est interdite sans accord écrit préalable de NeoHeberg. Cet egg reste la propriété exclusive de NeoHeberg.
 
 ---
 
