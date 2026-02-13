@@ -1,39 +1,33 @@
 {
-  "_comment": "Egg NodeJS pour NeoHeberg - Par Axel Lalaut et Slownover",
+  "_comment": "Egg NodeJS pour NeoHeberg - Version corrigée port dynamique",
   "meta": {
     "version": "PTDL_v2",
     "update_url": null
   },
-  "exported_at": "2025-06-08T12:00:00+00:00",
+  "exported_at": "2026-02-13T18:00:00+00:00",
   "name": "Node.js NeoHeberg",
   "author": "axel-l@neoheberg.fr",
-  "description": "Egg Node.js optimisé pour NeoHeberg avec support des versions 12.x à 24.x. Installation automatique des dépendances npm à chaque démarrage.",
-  "features": [
-    "eula"
-  ],
+  "description": "Egg Node.js optimisé pour NeoHeberg avec gestion correcte du port Pterodactyl.",
+  "features": ["eula"],
   "docker_images": {
-    "Nodejs 24": "ghcr.io\/pelican-eggs\/yolks:nodejs_24",
-    "Nodejs 23": "ghcr.io\/pelican-eggs\/yolks:nodejs_23",
-    "Nodejs 22": "ghcr.io\/pelican-eggs\/yolks:nodejs_22",
+    "Nodejs 24": "ghcr.io/pelican-eggs/yolks:nodejs_24",
+    "Nodejs 23": "ghcr.io/pelican-eggs/yolks:nodejs_23",
+    "Nodejs 22": "ghcr.io/pelican-eggs/yolks:nodejs_22",
     "Nodejs 21": "ghcr.io/parkervcp/yolks:nodejs_21",
     "Nodejs 20": "ghcr.io/parkervcp/yolks:nodejs_20",
-    "Nodejs 19": "ghcr.io/parkervcp/yolks:nodejs_19",
     "Nodejs 18": "ghcr.io/parkervcp/yolks:nodejs_18",
-    "Nodejs 17": "ghcr.io/parkervcp/yolks:nodejs_17",
-    "Nodejs 16": "ghcr.io/parkervcp/yolks:nodejs_16",
-    "Nodejs 14": "ghcr.io/parkervcp/yolks:nodejs_14",
-    "Nodejs 12": "ghcr.io/parkervcp/yolks:nodejs_12"
+    "Nodejs 16": "ghcr.io/parkervcp/yolks:nodejs_16"
   },
-  "startup": "if [[ ! -z ${NODE_PACKAGES} ]]; then /usr/local/bin/npm install ${NODE_PACKAGES}; fi; if [[ ! -z ${UNNODE_PACKAGES} ]]; then /usr/local/bin/npm uninstall ${UNNODE_PACKAGES}; fi; if [ -f /home/container/package.json ]; then /usr/local/bin/npm install; fi; /usr/local/bin/node \"/home/container/${MAIN_FILE}\"",
+  "startup": "if [[ ! -z ${NODE_PACKAGES} ]]; then npm install ${NODE_PACKAGES}; fi; if [[ ! -z ${UNNODE_PACKAGES} ]]; then npm uninstall ${UNNODE_PACKAGES}; fi; if [ -f /home/container/package.json ]; then npm install; fi; node /home/container/${MAIN_FILE}",
   "config": {
     "files": "{}",
-    "startup": "{\r\n    \"done\": [\r\n        \") Listening on \",\r\n        \") Ready on \",\r\n        \"listening on\",\r\n        \"Server started\",\r\n        \"App listening\",\r\n        \"ready - started server on\"\r\n    ]\r\n}",
+    "startup": "{\n      \"done\": [\n        \"Listening on\",\n        \"Ready on\",\n        \"Server started\",\n        \"App listening\",\n        \"ready - started server on\"\n      ]\n    }",
     "logs": "{}",
     "stop": "^C"
   },
   "scripts": {
     "installation": {
-      "script": "#!/bin/bash\n# Installation Script pour Node.js NeoHeberg\n\necho \"🚀 Début de l'installation Node.js pour NeoHeberg...\"\n\nmkdir -p /mnt/server\ncd /mnt/server\n\necho \"📁 Création de la structure de base...\"\n\n# Création d'un package.json de base si inexistant\nif [ ! -f package.json ]; then\n    echo \"📦 Création d'un package.json de base...\"\n    cat > package.json << 'EOF'\n{\n  \"name\": \"neoheberg-nodejs-app\",\n  \"version\": \"1.0.0\",\n  \"description\": \"Application Node.js pour NeoHeberg\",\n  \"main\": \"index.js\",\n  \"scripts\": {\n    \"start\": \"node index.js\"\n  },\n  \"dependencies\": {},\n  \"engines\": {\n    \"node\": \">=12.0.0\"\n  }\n}\nEOF\nfi\n\n# Création d'un index.js de base si inexistant\nif [ ! -f index.js ]; then\n    echo \"📄 Création d'un index.js de base...\"\n    cat > index.js << 'EOF'\nconst http = require('http');\nconst port = process.env.PORT || 3000;\n\nconst server = http.createServer((req, res) => {\n  res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });\n  res.end(`\n    <div style=\"font-family: Arial, sans-serif; text-align: center; padding: 50px;\">\n      <h1>🚀 Serveur Node.js NeoHeberg</h1>\n      <p>✅ Votre application fonctionne correctement !</p>\n      <p><strong>Version Node.js:</strong> ${process.version}</p>\n      <p><strong>Port:</strong> ${port}</p>\n      <p style=\"color: #666; margin-top: 30px;\">Modifiez le fichier index.js pour personnaliser votre application</p>\n    </div>\n  `);\n});\n\nserver.listen(port, '0.0.0.0', () => {\n  console.log(`✅ Serveur NeoHeberg démarré sur le port ${port}`);\n  console.log(`🌐 Application accessible sur http://0.0.0.0:${port}`);\n});\n\nprocess.on('SIGTERM', () => {\n  console.log('🛑 Arrêt du serveur...');\n  server.close(() => {\n    console.log('✅ Serveur arrêté proprement');\n    process.exit(0);\n  });\n});\nEOF\nfi\n\necho \"✅ Installation terminée pour NeoHeberg !\"\necho \"📋 Fichiers créés:\"\nls -la\necho \"\"\necho \"ℹ️  Les dépendances npm seront automatiquement installées à chaque démarrage du serveur.\"",
+      "script": "#!/bin/bash\n\necho \"🚀 Installation Node.js NeoHeberg...\"\n\nmkdir -p /mnt/server\ncd /mnt/server\n\nif [ ! -f package.json ]; then\ncat > package.json << 'EOF'\n{\n  \"name\": \"neoheberg-nodejs-app\",\n  \"version\": \"1.0.0\",\n  \"main\": \"index.js\",\n  \"scripts\": {\n    \"start\": \"node index.js\"\n  },\n  \"dependencies\": {}\n}\nEOF\nfi\n\nif [ ! -f index.js ]; then\ncat > index.js << 'EOF'\nconst http = require('http');\n\n// 🔥 Port récupéré via Pterodactyl\nconst port = process.env.SERVER_PORT;\n\nif (!port) {\n  console.error(\"❌ Aucun port trouvé.\");\n  process.exit(1);\n}\n\nconst server = http.createServer((req, res) => {\n  res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });\n  res.end(`\n    <div style=\"font-family: Arial; text-align: center; padding: 40px;\">\n      <h1>🚀 Serveur Node.js NeoHeberg</h1>\n      <p>✅ Serveur en ligne</p>\n      <p><strong>Node:</strong> ${process.version}</p>\n      <p><strong>Port:</strong> ${port}</p>\n    </div>\n  `);\n});\n\nserver.listen(port, '0.0.0.0', () => {\n  console.log(`✅ Serveur démarré sur le port ${port}`);\n});\n\nprocess.on('SIGTERM', () => {\n  server.close(() => process.exit(0));\n});\nEOF\nfi\n\necho \"✅ Installation terminée.\"",
       "container": "node:20-bookworm-slim",
       "entrypoint": "bash"
     }
@@ -41,7 +35,7 @@
   "variables": [
     {
       "name": "Installer des packages Node supplémentaires",
-      "description": "Installez des packages Node supplémentaires.\r\n\r\nUtilisez des espaces pour séparer.",
+      "description": "Packages npm à installer au démarrage (séparés par des espaces).",
       "env_variable": "NODE_PACKAGES",
       "default_value": "",
       "user_viewable": true,
@@ -50,17 +44,16 @@
     },
     {
       "name": "Fichier principal",
-      "description": "Nom du fichier JavaScript principal à exécuter.\r\n\r\nex: index.js, app.js, bot.js, server.js",
+      "description": "Fichier JavaScript principal (ex: index.js, app.js).",
       "env_variable": "MAIN_FILE",
       "default_value": "index.js",
       "user_viewable": true,
       "user_editable": true,
-      "rules": "required|regex:/^([a-zA-Z0-9._-]+)(\\.js)$/",
-      "field_type": "text"
+      "rules": "required|regex:/^([a-zA-Z0-9._-]+)(\\.js)$/"
     },
     {
       "name": "Désinstaller des packages Node",
-      "description": "Désinstallez des paquets Node.\r\n\r\nUtilisez des espaces pour séparer.",
+      "description": "Packages npm à désinstaller (séparés par des espaces).",
       "env_variable": "UNNODE_PACKAGES",
       "default_value": "",
       "user_viewable": true,
