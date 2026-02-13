@@ -7,7 +7,7 @@
   "exported_at": "2026-02-13T18:00:00+00:00",
   "name": "Node.js NeoHeberg",
   "author": "axel-l@neoheberg.fr",
-  "description": "Egg Node.js optimisé pour NeoHeberg avec gestion correcte du port Pterodactyl.",
+  "description": "Egg Node.js optimisé pour NeoHeberg avec support des versions 12.x à 24.x. Installation automatique des dépendances npm à chaque démarrage.",
   "features": ["eula"],
   "docker_images": {
     "Nodejs 24": "ghcr.io/pelican-eggs/yolks:nodejs_24",
