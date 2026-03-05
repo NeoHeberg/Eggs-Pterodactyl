@@ -3,7 +3,7 @@
 | Nom | Auteur | Description | Licence |
 |-----|--------|-------------|---------|
 | **Minecraft Vanilla** | [Pterodactyl](https://github.com/pterodactyl) | Egg officiel pour serveur Minecraft Vanilla (version standard). | [MIT](https://github.com/pterodactyl/panel/blob/develop/LICENSE) (Pterodactyl) |
-| **Python** | [parkervcp](https://github.com/parkervcp) | Egg pour exécuter des applications Python. | [MIT](https://github.com/parkervcp/eggs/blob/master/LICENSE) (parkervcp) |
+| **Python** |  |  |  |
 | **Node.js NeoHeberg** | Axel Lalaut & Slownover | Egg optimisé pour NeoHeberg avec support Node.js 12 à 24, installation automatique des dépendances et affichage personnalisé. | **Utilisation libre, modification interdite sans accord – Propriété NeoHeberg** |
 
 ---
