@@ -32,26 +32,32 @@ detect_architecture() {
 
 print_main_banner() {
     printf "\033c"
-    printf "${CYAN}┌─────────────────────────────────────────────────────────────┐${NC}\n"
-    printf "${CYAN}│${NC}                                                             ${CYAN}│${NC}\n"
-    printf "${CYAN}│${NC}           🚀  ${YELLOW}${BOLD}NeoHeberg${NC}                                      ${CYAN}│${NC}\n"
-    printf "${CYAN}│${NC}   ⚡  Basé sur le travail de ${YELLOW}ysdragon${NC}                        ${CYAN}│${NC}\n"
-    printf "${CYAN}│${NC}   🔧  Version simplifiée par ${YELLOW}NeoHeberg${NC}                       ${CYAN}│${NC}\n"
-    printf "${CYAN}│${NC}                                                             ${CYAN}│${NC}\n"
-    printf "${CYAN}└─────────────────────────────────────────────────────────────┘${NC}\n"
+
+    printf "${BOLD}"
+    printf "╔══════════════════════════════════════════════╗\n"
+    printf "║                                              ║\n"
+    printf "║              🚀  NeoHeberg                    ║\n"
+    printf "║                                              ║\n"
+    printf "╚══════════════════════════════════════════════╝\n"
+    printf "${NC}"
+
+    printf "\n"
+    printf "> Basé sur le travail de ${YELLOW}${BOLD}ysdragon${NC}\n"
+    printf "> Version simplifiée par ${YELLOW}${BOLD}NeoHeberg${NC}\n"
+    printf "> Version: ${YELLOW}${BOLD}1.0.4${NC}\n"
     printf "\n"
 }
 
 print_help_banner() {
-    printf "${CYAN}┌─────────────────────────────────────────────────────────────┐${NC}\n"
-    printf "${CYAN}│${NC}               ${WHITE}${BOLD}📋 Commandes disponibles    ${NC}                   ${CYAN}│${NC}\n"
-    printf "${CYAN}├─────────────────────────────────────────────────────────────┤${NC}\n"
-    printf "${CYAN}│${NC}  🧹  ${BLUE}clear / cls${NC}   ${GREEN}→${NC}  Effacer l'écran                        ${CYAN}│${NC}\n"
-    printf "${CYAN}│${NC}  🔌  ${RED}exit${NC}          ${GREEN}→${NC}  Arrêter le conteneur                   ${CYAN}│${NC}\n"
-    printf "${CYAN}│${NC}  📜  ${PURPLE}history${NC}      ${GREEN}→${NC}  Afficher l'historique                   ${CYAN}│${NC}\n"
-    printf "${CYAN}│${NC}  🔄  ${BLUE}reinstall${NC}     ${GREEN}→${NC}  Réinstaller le système                 ${CYAN}│${NC}\n"
-    printf "${CYAN}│${NC}  📊  ${BLUE}status${NC}        ${GREEN}→${NC}  Afficher l'état du système             ${CYAN}│${NC}\n"
-    printf "${CYAN}│${NC}  ❓  ${WHITE}help${NC}          ${GREEN}→${NC}  Afficher cette aide                    ${CYAN}│${NC}\n"
-    printf "${CYAN}└─────────────────────────────────────────────────────────────┘${NC}\n"
+    printf "${BOLD}${WHITE}Commandes disponibles${NC}\n"
+    printf "${CYAN}──────────────────────────────────────────────${NC}\n"
+
+    printf "  ${GREEN}clear / cls${NC}     Nettoyer l'écran\n"
+    printf "  ${GREEN}exit${NC}            Arrêter le conteneur\n"
+    printf "  ${GREEN}history${NC}         Afficher l'historique\n"
+    printf "  ${GREEN}reinstall${NC}       Réinstaller le système\n"
+    printf "  ${GREEN}status${NC}          Afficher l'état du système\n"
+    printf "  ${GREEN}help${NC}            Afficher cette aide\n"
+
     printf "\n"
 }

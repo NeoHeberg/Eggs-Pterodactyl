@@ -1,7 +1,7 @@
 
 FROM alpine:3.23
 ENV PROOT_VERSION=5.4.0
-ENV LANG=en_US.UTF-8
+ENV LANG=fr_FR.UTF-8
 
 
 RUN apk update && \
@@ -36,7 +36,8 @@ COPY --chown=container:container ./install.sh /install.sh
 COPY --chown=container:container ./helper.sh /helper.sh
 COPY --chown=container:container ./run.sh /run.sh
 COPY --chown=container:container ./common.sh /common.sh
+COPY --chown=container:container ./checker.sh /checker.sh
 COPY --chown=container:container ./install_vnc.sh /vnc_install.sh
 
-RUN chmod +x /entrypoint.sh /install.sh /helper.sh /run.sh /common.sh /vnc_install.sh
+RUN chmod +x /entrypoint.sh /install.sh /helper.sh /run.sh /common.sh /checker.sh /vnc_install.sh
 CMD ["/bin/sh", "/entrypoint.sh"]

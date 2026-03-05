@@ -1,7 +1,7 @@
 #!/bin/sh
 
-
 . /common.sh
+. /checker.sh
 ROOTFS_DIR="/home/container"
 BASE_URL="https://images.linuxcontainers.org/images"
 ARCH=$(uname -m)
@@ -33,6 +33,20 @@ check_network() {
     curl -s --head "$BASE_URL" >/dev/null || error_exit "Impossible de joindre $BASE_URL"
 }
 
+# Spinner animé (tourne sur la même ligne)
+spinner() {
+    local pid=$1
+    local delay=0.1
+    local spinstr='|/-\'
+    while kill -0 "$pid" 2>/dev/null; do
+        printf "%c" "$spinstr"
+        spinstr=${spinstr#?}${spinstr%"${spinstr#?}"}
+        sleep $delay
+        printf "\b"
+    done
+    printf " \b"
+}
+
 # Téléchargement et extraction du rootfs
 download_rootfs() {
     distro_id="$1"
@@ -40,15 +54,36 @@ download_rootfs() {
     url="${BASE_URL}/${distro_id}/${version}/${ARCH_ALT}/default/"
 
     # Récupérer le dernier snapshot 
+    printf "Recherche du dernier snapshot... "
     latest=$(curl -s "$url" | grep -oE '[0-9]{8}_[0-9]{2}:[0-9]{2}/' | sort -r | head -n1)
-    [ -z "$latest" ] && error_exit "Aucune version trouvée pour ${distro_id} ${version}"
+    if [ -z "$latest" ]; then
+        printf "${RED}ÉCHEC${NC}\n"
+        error_exit "Aucune version trouvée pour ${distro_id} ${version}"
+    else
+        printf "${GREEN}OK${NC} (${latest%/})\n"
+    fi
 
-    log "INFO" "Téléchargement de l'image..." "$GREEN"
     mkdir -p "$ROOTFS_DIR"
-    curl -Ls "${url}${latest}rootfs.tar.xz" -o "$ROOTFS_DIR/rootfs.tar.xz" || error_exit "Échec du téléchargement"
+    printf "Téléchargement de l'image... "
+    curl -L -s -o "$ROOTFS_DIR/rootfs.tar.xz" "${url}${latest}rootfs.tar.xz" &
+    pid=$!
+    spinner $pid
+    wait $pid
+    if [ $? -eq 0 ]; then
+        printf "${GREEN}OK${NC}\n"
+    else
+        printf "${RED}ÉCHEC${NC}\n"
+        error_exit "Échec du téléchargement"
+    fi
 
-    log "INFO" "Extraction de l'image..." "$GREEN"
-    tar -xf "$ROOTFS_DIR/rootfs.tar.xz" -C "$ROOTFS_DIR" || error_exit "Échec de l'extraction"
+    printf "Extraction de l'image... "
+    tar -xf "$ROOTFS_DIR/rootfs.tar.xz" -C "$ROOTFS_DIR" 2>/dev/null
+    if [ $? -eq 0 ]; then
+        printf "${GREEN}OK${NC}\n"
+    else
+        printf "${RED}ÉCHEC${NC}\n"
+        error_exit "Échec de l'extraction"
+    fi
 
     rm -f "$ROOTFS_DIR/rootfs.tar.xz"
     rm -f "$ROOTFS_DIR/etc/resolv.conf"
@@ -72,12 +107,14 @@ distro_id=$(echo "$distro_line" | cut -d: -f3)
 
 check_network
 
-# Récupération des versions 
-log "INFO" "Recherche des versions pour $distro_name..." "$GREEN"
+# Récupération des versions
+printf "Recherche des versions pour $distro_name... "
 versions=$(curl -s "${BASE_URL}/${distro_id}/" | grep -oE 'href="[^"]+/"' | sed 's/href="//;s/\/"//' | grep -v '^\.\.$' | sort -V)
-
 if [ -z "$versions" ]; then
+    printf "${RED}ÉCHEC${NC}\n"
     error_exit "Aucune version trouvée pour $distro_name"
+else
+    printf "${GREEN}OK${NC}\n"
 fi
 
 # Compter et afficher les versions
