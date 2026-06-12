@@ -18,9 +18,9 @@
 
 ### Python
 
-- **Source** : Egg créé par parkervcp, maintenu dans le dépôt [parkervcp/eggs](https://github.com/parkervcp/eggs).
+- **Source** : Egg créé par YajTPG, maintenu dans le dépôt [YajTPG/pterodactyl-eggs](https://github.com/YajTPG/pterodactyl-eggs).
 - **Utilisation chez NeoHeberg** : Utilisé sans modification.
-- **Licence** : Également sous licence MIT (voir [LICENSE](https://github.com/parkervcp/eggs/blob/master/LICENSE)).
+- **Licence** : Également sous licence MIT (voir [LICENSE](https://github.com/YajTPG/pterodactyl-eggs/blob/universal/LICENSE)).
 
 ### Node.js NeoHeberg
 
