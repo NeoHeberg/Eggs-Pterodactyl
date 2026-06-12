@@ -1,26 +1,29 @@
 ## 📦 Eggs disponibles
 
-| Nom | Auteur | Description | Licence |
-|-----|--------|-------------|---------|
-| **Minecraft Vanilla** | [Pterodactyl](https://github.com/pterodactyl) | Egg officiel pour serveur Minecraft Vanilla (version standard). | [MIT](https://github.com/pterodactyl/panel/blob/1.0-develop/LICENSE.md) (Pterodactyl) |
-| **Python** |  |  |  |
-| **Node.js NeoHeberg** | Axel Lalaut & Slownover | Egg optimisé pour NeoHeberg avec support Node.js 12 à 24, installation automatique des dépendances et affichage personnalisé. | **Utilisation libre, modification interdite sans accord – Propriété NeoHeberg** |
+| Nom                   | Auteur                                        | Description                                                                                                                   | Licence                                                                               |
+| --------------------- | --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| **Minecraft Vanilla** | [Pterodactyl](https://github.com/pterodactyl) | Egg officiel pour serveur Minecraft Vanilla (version standard).                                                               | [MIT](https://github.com/pterodactyl/panel/blob/1.0-develop/LICENSE.md) (Pterodactyl) |
+| **Python**            | [YajTPG](https://github.com/YajTPG)           | Egg python créé par YajTPG                                                                                                    | [MIT](https://github.com/YajTPG/pterodactyl-eggs/blob/universal/LICENSE)              |
+| **Node.js NeoHeberg** | Axel Lalaut & Slownover                       | Egg optimisé pour NeoHeberg avec support Node.js 12 à 24, installation automatique des dépendances et affichage personnalisé. | **Utilisation libre, modification interdite sans accord – Propriété NeoHeberg**       |
 
 ---
 
 ## 🧩 Détails des eggs
 
 ### Minecraft Vanilla
+
 - **Source** : Egg officiel du projet Pterodactyl.
 - **Utilisation chez NeoHeberg** : Aucune modification n’a été apportée, il est utilisé tel quel.
 - **Licence** : Distribué sous licence MIT par Pterodactyl.
 
 ### Python
+
 - **Source** : Egg créé par parkervcp, maintenu dans le dépôt [parkervcp/eggs](https://github.com/parkervcp/eggs).
 - **Utilisation chez NeoHeberg** : Utilisé sans modification.
 - **Licence** : Également sous licence MIT (voir [LICENSE](https://github.com/parkervcp/eggs/blob/master/LICENSE)).
 
 ### Node.js NeoHeberg
+
 - **Auteurs** : Axel Lalaut & Slownover (équipe NeoHeberg).
 - **Description** : Cet egg a été conçu spécialement pour l’hébergement d’applications Node.js sur NeoHeberg. Il intègre :
   - Support des versions Node.js de 12 à 24.
