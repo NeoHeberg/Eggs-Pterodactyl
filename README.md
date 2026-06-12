@@ -40,7 +40,7 @@ Nous tenons à remercier les auteurs des eggs communautaires pour leur travail.
 Si vous utilisez ces eggs en dehors de NeoHeberg, merci de vous référer aux licences respectives :
 
 - **Pterodactyl** : [MIT](https://github.com/pterodactyl/panel/blob/develop/LICENSE)
-- **parkervcp/eggs** : [MIT](https://github.com/parkervcp/eggs/blob/master/LICENSE)
+- **YajTPG/pterodactyl-eggs** : [MIT](https://github.com/YajTPG/pterodactyl-eggs/blob/universal/LICENSE)
 
 Pour toute question concernant l’egg **Node.js NeoHeberg**, veuillez contacter l’équipe NeoHeberg.
 
