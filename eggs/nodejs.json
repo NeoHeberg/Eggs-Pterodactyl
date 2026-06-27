@@ -27,7 +27,7 @@
   "startup": "if [[ ! -z ${NODE_PACKAGES} ]]; then npm install ${NODE_PACKAGES}; fi; if [[ ! -z ${UNNODE_PACKAGES} ]]; then npm uninstall ${UNNODE_PACKAGES}; fi; if [ -f \/home\/container\/package.json ]; then npm install; fi; node \/home\/container\/${MAIN_FILE}",
   "config": {
     "files": "{}",
-    "startup": "{\r\n    \"done\": [\r\n        \"Listening on\",\r\n        \"Ready on\",\r\n        \"Server started\",\r\n        \"App listening\",\r\n        \"ready - started server on\"\r\n        \"Démarré à\"\r\n        \"is ready\"\r\n        \"Connected as\"\r\n        \"Bot démarré\"\r\n        \"Connecté en tant que\"\r\n    ]\r\n}",
+    "startup": "{\r\n    \"done\": [\r\n        \"Listening on\",\r\n        \"Ready on\",\r\n        \"Server started\",\r\n        \"App listening\",\r\n        \"ready - started server on\"\r\n        \"Démarré à\"\r\n        \"is ready\"\r\n        \"Connected as\"\r\n        \"Bot démarré\"\r\n        \"Connecté en tant que\"\r\n        \"Server running\"\r\n    ]\r\n}",
     "logs": "{}",
     "stop": "^C"
   },
