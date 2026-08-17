@@ -12,8 +12,8 @@
   "docker_images": {
     "Node.js NeoHeberg": "registry.axel-l.fr/neoheberg_egg/nodejs:latest"
   },
-  "file_denylist": [".neoheberg_installed", ".fnm/**"],
-  "startup": "bash /entrypoint.sh",
+  "file_denylist": [".neoheberg/**", ".neoheberg_installed", ".fnm/**"],
+  "startup": "bash ./.neoheberg/entrypoint.sh",
   "config": {
     "files": "{}",
     "startup": "{\"done\": [\"Listening on\", \"Server started\", \"App listening\", \"ready - started server on\", \"is ready\", \"Connected as\", \"Bot prêt\", \"Bot démarré\", \"Bot Discord prêt\", \"Serveur web démarré\", \"API démarrée\", \"Server running\"]}",
@@ -22,7 +22,7 @@
   },
   "scripts": {
     "installation": {
-      "script": "#!/bin/bash\n# NeoHeberg Node.js - installation initiale (non interactive).\n# Le setup interactif se fait au premier DEMARRAGE du serveur,\n# car la console Pterodactyl n'est pas interactive pendant l'installation.\nmkdir -p /mnt/server\necho \"NeoHeberg Node.js - installation initiale terminée.\"\necho \"Démarrez le serveur pour lancer le setup interactif.\"\n",
+      "script": "#!/bin/bash\n# Copie les scripts NeoHeberg de l'image vers le volume (pattern identique à\n# l'exemple Xray : le script de démarrage vit dans le volume).\ncd /mnt/server\nmkdir -p .neoheberg\ncp /usr/local/share/neoheberg/entrypoint.sh .neoheberg/entrypoint.sh\ncp /usr/local/share/neoheberg/setup.sh .neoheberg/setup.sh\ncp /usr/local/share/neoheberg/versions.txt .neoheberg/versions.txt\nchmod +x .neoheberg/entrypoint.sh .neoheberg/setup.sh\necho \"NeoHeberg Node.js - installation initiale terminée.\"\necho \"Démarrez le serveur pour lancer le setup interactif.\"\n",
       "container": "registry.axel-l.fr/neoheberg_egg/nodejs:latest",
       "entrypoint": "bash"
     }

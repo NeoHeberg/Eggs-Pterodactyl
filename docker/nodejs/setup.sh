@@ -16,7 +16,11 @@ set -uo pipefail
 
 R="\e[0m"; B="\e[1m"; RED="\e[31m"; GRN="\e[32m"; YLW="\e[33m"; CYN="\e[36m"
 
-VERSIONS_FILE="/usr/local/share/neoheberg/versions.txt"
+# Copié dans le volume avec entrypoint.sh : on résout les chemins par rapport
+# à la position du script (fonctionne aussi bien dans le volume que dans l'image).
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+VERSIONS_FILE="$SCRIPT_DIR/versions.txt"
 MARKER="/home/container/.neoheberg_installed"
 
 echo -e "${CYN}${B}Bienvenue sur NeoHeberg Node.js !${R}"

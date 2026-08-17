@@ -11,7 +11,12 @@ set -euo pipefail
 #
 #  La version de Node est gérée par fnm et installée dans le volume persistant
 #  (/home/container/.fnm), donc elle survit aux redémarrages.
+#
+#  Ce script est copié dans le volume (/home/container/.neoheberg) au moment de
+#  l'installation ; on résout donc les chemins par rapport à sa propre position.
 # =============================================================================
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 export HOME="${HOME:-/home/container}"
 export FNM_DIR="${FNM_DIR:-/home/container/.fnm}"
@@ -35,7 +40,7 @@ if [[ ! -f "$MARKER" ]]; then
     echo "        NeoHeberg · Node.js — Premier lancement"
     echo "=================================================="
     echo ""
-    bash /usr/local/share/neoheberg/setup.sh
+    bash "$SCRIPT_DIR/setup.sh"
 fi
 
 # --- Lecture de la configuration ---

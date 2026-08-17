@@ -52,8 +52,8 @@ RUN curl -fsSL "https://github.com/Schniz/fnm/releases/download/v${FNM_VERSION}/
 RUN mkdir -p /usr/local/share/neoheberg
 COPY versions.txt /usr/local/share/neoheberg/versions.txt
 COPY setup.sh /usr/local/share/neoheberg/setup.sh
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /usr/local/share/neoheberg/setup.sh /entrypoint.sh
+COPY entrypoint.sh /usr/local/share/neoheberg/entrypoint.sh
+RUN chmod +x /usr/local/share/neoheberg/setup.sh /usr/local/share/neoheberg/entrypoint.sh
 
 # Optionnel : décommenter pour supporter les modules npm natifs (node-gyp).
 # Attention : cela alourdit nettement l'image (python3 + make + g++).
