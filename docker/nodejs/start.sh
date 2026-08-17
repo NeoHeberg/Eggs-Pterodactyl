@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # =============================================================================
-#  NeoHeberg · Egg Node.js — entrypoint
+#  NeoHeberg · Egg Node.js — start.sh (script de démarrage)
 #  ---------------------------------------------------------------------------
 #  - Premier démarrage   : lance le setup interactif (type de service + version
 #                          Node) puis installe la version choisie.
