@@ -6,12 +6,6 @@ set -uo pipefail
 # =============================================================================
 #  NeoHeberg · Egg Node.js — setup interactif
 #  Exécuté au premier démarrage (quand .neoheberg_installed n'existe pas).
-#  Étapes :
-#    1. Confirmation d'installation (non => arrêt)
-#    2. Choix du type de service (Web / Bot Discord / API / Autre)
-#    3. Choix de la version Node.js (liste curatée)
-#    4. Confirmation finale (non => arrêt)
-#    5. Génération des fichiers par défaut + écriture du marqueur
 # =============================================================================
 
 R="\e[0m"; B="\e[1m"; DIM="\e[2m"; RED="\e[31m"; GRN="\e[32m"; YLW="\e[33m"; CYN="\e[36m"
@@ -23,8 +17,20 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 VERSIONS_FILE="$SCRIPT_DIR/versions.txt"
 MARKER="/home/container/.neoheberg_installed"
 
+# Efface la console (séquence ANSI, pas besoin de `clear`/ncurses).
+clear_screen() {
+    printf '\033[2J\033[H'
+}
+
+cancel() {
+    echo ""
+    echo -e "${YLW}Installation annulée. Le serveur va s'arrêter.${R}"
+    echo -e "${YLW}Redémarrez-le lorsque vous serez prêt.${R}"
+    exit 1
+}
+
 # --- En-tête + description ---------------------------------------------------
-echo ""
+clear_screen
 echo -e "  ${CYN}${B}NeoHeberg · Node.js${R}"
 echo -e "  ${DIM}─────────────────────────────────────────${R}"
 echo ""
@@ -38,43 +44,50 @@ echo -e "${DIM}modification ne sera effectuée.${R}"
 echo ""
 
 # --- Étape 1 : confirmation d'installation -----------------------------------
+clear_screen
 echo -e "${CYN}${B}Étape 1/3 — Installation${R}"
+echo ""
+echo "Souhaitez-vous procéder à l'installation ? [o/n]"
+echo ""
+echo ""
+echo -e "  ${DIM}c : annuler${R}"
 while true; do
-    printf "Souhaitez-vous procéder à l'installation ? [o/n] : "
     read -r ANS
     case "${ANS,,}" in
         o|oui|y|yes) break ;;
-        n|non|no)
-            echo ""
-            echo -e "${YLW}Installation annulée. Le serveur va s'arrêter.${R}"
-            echo -e "${YLW}Redémarrez-le lorsque vous serez prêt.${R}"
-            exit 1
-            ;;
-        *) echo -e "${RED}Répondez par « o » (oui) ou « n » (non).${R}" ;;
+        n|non|no) cancel ;;
+        c|cancel|annuler) cancel ;;
+        *) echo -e "${RED}Réponse invalide — « o » pour continuer, « n » ou « c » pour annuler.${R}" ;;
     esac
 done
 
 # --- Étape 2 : type de service ----------------------------------------------
-echo ""
+clear_screen
 echo -e "${CYN}${B}Étape 2/3 — Type de service${R}"
+echo ""
 echo "  1) Site web"
 echo "  2) Bot Discord"
 echo "  3) API REST"
 echo "  4) Autre / projet déjà prêt"
+echo ""
+echo "Votre choix [1-4]"
+echo ""
+echo ""
+echo -e "  ${DIM}c : annuler${R}"
 while true; do
-    printf "Votre choix [1-4] : "
     read -r TYPE
     case "$TYPE" in
         1) SERVICE_TYPE="web";     SERVICE_LABEL="Site web" ;;
         2) SERVICE_TYPE="discord"; SERVICE_LABEL="Bot Discord" ;;
         3) SERVICE_TYPE="api";     SERVICE_LABEL="API REST" ;;
         4) SERVICE_TYPE="other";   SERVICE_LABEL="Autre / projet prêt" ;;
-        *) echo -e "${RED}Choix invalide.${R}"; continue ;;
+        c|cancel|annuler) cancel ;;
+        *) echo -e "${RED}Choix invalide (1-4) — ou « c » pour annuler.${R}"; continue ;;
     esac
     break
 done
 
-# --- Étape 3 : version Node (liste simple, sans pagination) -----------------
+# --- Étape 3 : version Node --------------------------------------------------
 mapfile -t VERSIONS < <(tr -d '\r' < "$VERSIONS_FILE" | grep -vE '^\s*(#|$)')
 TOTAL="${#VERSIONS[@]}"
 if [[ "$TOTAL" -eq 0 ]]; then
@@ -82,8 +95,9 @@ if [[ "$TOTAL" -eq 0 ]]; then
     exit 1
 fi
 
-echo ""
+clear_screen
 echo -e "${CYN}${B}Étape 3/3 — Version de Node.js${R}"
+echo ""
 for ((i=0; i<TOTAL; i++)); do
     LINE="${VERSIONS[$i]}"
     VER="${LINE%%|*}"
@@ -92,38 +106,42 @@ for ((i=0; i<TOTAL; i++)); do
     printf "  %2d) %-9s  %s\n" "$((i+1))" "$VER" "${LABEL:+${DIM}[${LABEL}]${R}}"
 done
 echo ""
+echo "Votre choix [1-${TOTAL}]"
+echo ""
+echo ""
+echo -e "  ${DIM}c : annuler${R}"
 while true; do
-    printf "Votre choix [1-%d] : " "$TOTAL"
     read -r CHOICE
     case "$CHOICE" in
-        ''|*[!0-9]*) echo -e "${RED}Choix invalide.${R}" ;;
+        c|cancel|annuler) cancel ;;
+        ''|*[!0-9]*) echo -e "${RED}Choix invalide (1-${TOTAL}) — ou « c » pour annuler.${R}" ;;
         *)
             if [[ "$CHOICE" -ge 1 && "$CHOICE" -le "$TOTAL" ]]; then
                 NODE_VERSION="${VERSIONS[$((CHOICE-1))]%%|*}"
                 break
             fi
-            echo -e "${RED}Choix invalide.${R}" ;;
+            echo -e "${RED}Choix invalide (1-${TOTAL}) — ou « c » pour annuler.${R}" ;;
     esac
 done
 
 # --- Étape 4 : confirmation --------------------------------------------------
+clear_screen
+echo -e "${B}Récapitulatif${R}"
 echo ""
-echo -e "${B}Récapitulatif :${R}"
 echo "  Type de service : ${SERVICE_LABEL}"
 echo "  Version Node.js : ${NODE_VERSION}"
 echo ""
+echo "Confirmer l'installation ? [o/n]"
+echo ""
+echo ""
+echo -e "  ${DIM}c : annuler${R}"
 while true; do
-    printf "Confirmer l'installation ? [o/n] : "
     read -r CONFIRM
     case "${CONFIRM,,}" in
         o|oui|y|yes) break ;;
-        n|non|no)
-            echo ""
-            echo -e "${YLW}Installation annulée. Le serveur va s'arrêter.${R}"
-            echo -e "${YLW}Aucun fichier n'a été modifié. Redémarrez pour recommencer.${R}"
-            exit 1
-            ;;
-        *) echo -e "${RED}Répondez par « o » (oui) ou « n » (non).${R}" ;;
+        n|non|no) cancel ;;
+        c|cancel|annuler) cancel ;;
+        *) echo -e "${RED}Réponse invalide — « o » pour confirmer, « n » ou « c » pour annuler.${R}" ;;
     esac
 done
 
