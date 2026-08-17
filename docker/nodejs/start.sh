@@ -35,11 +35,6 @@ fi
 
 # --- Setup interactif (premier démarrage uniquement) ---
 if [[ ! -f "$MARKER" ]]; then
-    echo ""
-    echo "=================================================="
-    echo "        NeoHeberg · Node.js — Premier lancement"
-    echo "=================================================="
-    echo ""
     bash "$SCRIPT_DIR/setup.sh"
 fi
 
