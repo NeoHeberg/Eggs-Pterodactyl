@@ -46,18 +46,24 @@ if [[ -z "$NODE_VERSION" ]]; then
     exit 1
 fi
 
-# --- Initialisation de l'environnement fnm (requis avant `fnm use`) ---
-eval "$(fnm env)"
-
 # --- Installation de la version (idempotent) ---
-if ! fnm list 2>/dev/null | grep -qwE "v?${NODE_VERSION#v}"; then
+# fnm installe les versions dans $FNM_DIR/node-versions/v<version>/installation.
+# On active la version directement via PATH : le mécanisme `fnm use` nécessite
+# un environnement shell interactif que Pterodactyl ne fournit pas.
+NODE_INSTALL_DIR="${FNM_DIR}/node-versions/v${NODE_VERSION#v}/installation"
+if [[ ! -x "${NODE_INSTALL_DIR}/bin/node" ]]; then
     echo ""
     echo ">>> Installation de Node.js ${NODE_VERSION} (téléchargement, première fois)..."
     fnm install "${NODE_VERSION}"
 fi
 
-fnm use "${NODE_VERSION}"
-eval "$(fnm env)"
+if [[ ! -x "${NODE_INSTALL_DIR}/bin/node" ]]; then
+    echo "ERREUR : Node.js ${NODE_VERSION} est introuvable après installation."
+    echo "Chemin attendu : ${NODE_INSTALL_DIR}/bin/node"
+    exit 1
+fi
+
+export PATH="${NODE_INSTALL_DIR}/bin:${PATH}"
 
 echo ""
 echo ">>> Node.js : $(node --version) · npm : $(npm --version)"
