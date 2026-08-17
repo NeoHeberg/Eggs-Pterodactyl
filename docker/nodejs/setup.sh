@@ -207,8 +207,9 @@ EOF
 const { Client, GatewayIntentBits } = require('discord.js');
 const token = process.env.DISCORD_TOKEN;
 if (!token) {
-  console.error('Erreur : variable DISCORD_TOKEN non définie (onglet Variables).');
-  process.exit(1);
+  console.log('⚠️  Variable DISCORD_TOKEN non définie (onglet Variables du panel).');
+  console.log('Renseignez le token de votre bot puis redémarrez le serveur.');
+  process.exit(0);
 }
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 client.once('ready', () => {
