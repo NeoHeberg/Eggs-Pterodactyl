@@ -10,7 +10,7 @@
   "description": "Egg Node.js NeoHeberg. Setup interactif au premier démarrage : choix du type de service (Web / Bot Discord / API / Autre) et de la version Node.js (liste curatée 12.x à 24.x). La version est installée via fnm dans le volume persistant. Image runtime légère (Debian slim) hébergée sur le registry Harbor NeoHeberg (registry.axel-l.fr).",
   "features": [],
   "docker_images": {
-    "Node.js (runtime NeoHeberg)": "registry.axel-l.fr/neoheberg_egg/nodejs:latest"
+    "Node.js NeoHeberg": "registry.axel-l.fr/neoheberg_egg/nodejs:latest"
   },
   "file_denylist": [".neoheberg_installed", ".fnm/**"],
   "startup": "bash /entrypoint.sh",
