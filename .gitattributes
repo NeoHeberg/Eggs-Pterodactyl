@@ -1,0 +1,10 @@
+# Forcer des fins de ligne LF (Unix) pour les fichiers sensibles :
+# sans cela, les shebangs des scripts shell peuvent casser sous Docker
+# sur un checkout Windows (core.autocrlf).
+*.sh text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+Dockerfile text eol=lf

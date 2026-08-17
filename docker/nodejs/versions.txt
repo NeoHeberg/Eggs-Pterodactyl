@@ -1,0 +1,28 @@
+# =============================================================================
+#  NeoHeberg · Egg Node.js — liste des versions proposées au setup
+#  ---------------------------------------------------------------------------
+#  Format : VERSION|LABEL
+#    - VERSION : version exacte publiée sur nodejs.org/dist (build glibc).
+#    - LABEL   : LTS / EOL (affiché dans le menu pour informer l'utilisateur).
+#
+#  Cette liste est curatée : l'utilisateur ne peut choisir QUE parmi ces
+#  versions (pas de saisie libre), ce qui garantit que seuls des binaires
+#  Node officiels connus sont téléchargés.
+#
+#  ⚠️ Ce fichier est figé dans l'image Docker. Toute modification nécessite un
+#     rebuild via le workflow GitHub Actions (push sur docker/nodejs/**).
+# =============================================================================
+
+12.22.12|EOL (Erbium)
+13.14.0|EOL
+14.21.3|EOL (Fermium)
+15.14.0|EOL
+16.20.2|EOL (Gallium)
+17.9.1|EOL
+18.20.8|EOL (Hydrogen)
+19.9.0|EOL
+20.20.2|EOL (Iron)
+21.7.3|EOL
+22.23.2|LTS (Jod)
+23.11.1|EOL
+24.19.0|LTS (Krypton)

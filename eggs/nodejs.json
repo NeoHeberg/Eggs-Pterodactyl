@@ -4,69 +4,58 @@
     "version": "PTDL_v2",
     "update_url": null
   },
-  "exported_at": "2026-05-13T17:54:01+02:00",
+  "exported_at": "2026-08-17T00:00:00+02:00",
   "name": "Node.js NeoHeberg",
   "author": "axel-l@neoheberg.fr",
-  "description": "Egg Node.js optimis\u00e9 pour NeoHeberg avec support des versions 12.x \u00e0 24.x. Installation automatique des d\u00e9pendances npm \u00e0 chaque d\u00e9marrage.",
-  "features": [
-    "eula"
-  ],
+  "description": "Egg Node.js NeoHeberg. Setup interactif au premier démarrage : choix du type de service (Web / Bot Discord / API / Autre) et de la version Node.js (liste curatée 12.x à 24.x). La version est installée via fnm dans le volume persistant. Image runtime légère (Debian slim) hébergée sur le registry Harbor NeoHeberg (registry.axel-l.fr).",
+  "features": [],
   "docker_images": {
-    "Nodejs 24": "ghcr.io\/pelican-eggs\/yolks:nodejs_24",
-    "Chromium Nodejs 24": "ghcr.io\/zastinian\/esdock:chrnodejs_24",
-    "Nodejs 22": "ghcr.io\/pelican-eggs\/yolks:nodejs_22",
-    "Chromium Nodejs 22": "ghcr.io\/zastinian\/esdock:chrnodejs_22",
-    "Nodejs 20": "ghcr.io\/parkervcp\/yolks:nodejs_20",
-    "Chromium Nodejs 20": "ghcr.io\/zastinian\/esdock:chrnodejs_20",
-    "Nodejs 18": "ghcr.io\/parkervcp\/yolks:nodejs_18",
-    "Chromium Nodejs 18": "ghcr.io\/zastinian\/esdock:chrnodejs_18",
-    "Nodejs 16": "ghcr.io\/parkervcp\/yolks:nodejs_16",
-    "Chromium Nodejs 16": "ghcr.io\/zastinian\/esdock:chrnodejs_16"
+    "Node.js (runtime NeoHeberg)": "registry.axel-l.fr/neoheberg_egg/nodejs:latest"
   },
-  "file_denylist": [],
-  "startup": "if [[ ! -z ${NODE_PACKAGES} ]]; then npm install ${NODE_PACKAGES}; fi; if [[ ! -z ${UNNODE_PACKAGES} ]]; then npm uninstall ${UNNODE_PACKAGES}; fi; if [ -f \/home\/container\/package.json ]; then npm install; fi; node \/home\/container\/${MAIN_FILE}",
+  "file_denylist": [".neoheberg_installed", ".fnm/**"],
+  "startup": "bash /entrypoint.sh",
   "config": {
     "files": "{}",
-    "startup": "{\r\n    \"done\": [\r\n        \"Listening on\",\r\n        \"Ready on\",\r\n        \"Server started\",\r\n        \"App listening\",\r\n        \"ready - started server on\"\r\n        \"Démarré à\"\r\n        \"is ready\"\r\n        \"Connected as\"\r\n        \"Bot démarré\"\r\n        \"Connecté en tant que\"\r\n        \"Server running\"\r\n    ]\r\n}",
+    "startup": "{\"done\": [\"Listening on\", \"Server started\", \"App listening\", \"ready - started server on\", \"is ready\", \"Connected as\", \"Bot prêt\", \"Bot démarré\", \"Bot Discord prêt\", \"Serveur web démarré\", \"API démarrée\", \"Server running\"]}",
     "logs": "{}",
     "stop": "^C"
   },
   "scripts": {
     "installation": {
-      "script": "#!\/bin\/bash\n\necho \"\ud83d\ude80 Installation Node.js NeoHeberg...\"\n\nmkdir -p \/mnt\/server\ncd \/mnt\/server\n\nif [ ! -f package.json ]; then\ncat > package.json << 'EOF'\n{\n  \"name\": \"neoheberg-nodejs-app\",\n  \"version\": \"1.0.0\",\n  \"main\": \"index.js\",\n  \"scripts\": {\n    \"start\": \"node index.js\"\n  },\n  \"dependencies\": {}\n}\nEOF\nfi\n\nif [ ! -f index.js ]; then\ncat > index.js << 'EOF'\nconst http = require('http');\n\nconst port = process.env.SERVER_PORT;\nif (!port) {\n  console.error(\"\u274c Aucun port trouv\u00e9.\");\n  process.exit(1);\n}\n\nconst startTime = new Date().toLocaleString('fr-FR', { timeZone: 'Europe\/Paris' });\n\nconst server = http.createServer((req, res) => {\n  res.writeHead(200, { 'Content-Type': 'text\/html; charset=utf-8' });\n  res.end(`\n<!DOCTYPE html>\n<html lang=\"fr\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>NeoHeberg \u2022 Node.js<\/title>\n  <script src=\"https:\/\/cdn.tailwindcss.com\"><\/script>\n  <link rel=\"stylesheet\" href=\"https:\/\/cdnjs.cloudflare.com\/ajax\/libs\/font-awesome\/7.0.1\/css\/all.min.css\" integrity=\"sha512-2SwdPD6INVrV\/lHTZbO2nodKhrnDdJK9\/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==\" crossorigin=\"anonymous\" referrerpolicy=\"no-referrer\" \/>\n<\/head>\n<body class=\"bg-black text-gray-200 min-h-screen flex items-center justify-center p-4 font-sans\">\n  <div class=\"max-w-4xl w-full bg-gray-900 rounded-3xl shadow-2xl border border-gray-700 p-8 md:p-10\">\n    <div class=\"flex items-center gap-3 mb-2\">\n      <i class=\"fas fa-rocket text-4xl text-blue-400\"><\/i>\n      <h1 class=\"text-4xl md:text-5xl font-extrabold text-blue-400\">Node.js \u00b7 NeoHeberg<\/h1>\n    <\/div>\n    <div class=\"inline-block bg-green-600 text-white px-4 py-1 rounded-full text-sm font-semibold shadow-md mb-6\">\n      <i class=\"fas fa-check-circle mr-1\"><\/i> EN LIGNE\n    <\/div>\n\n    <div class=\"grid grid-cols-1 md:grid-cols-3 gap-4 bg-gray-800 rounded-2xl p-6 shadow-inner mb-8\">\n      <div class=\"text-center md:text-left\">\n        <div class=\"text-gray-400 text-sm uppercase tracking-wider\"><i class=\"fab fa-node-js text-lg mr-1\"><\/i>Version Node<\/div>\n        <div class=\"text-3xl font-bold text-blue-400\">${process.version}<\/div>\n      <\/div>\n      <div class=\"text-center md:text-left\">\n        <div class=\"text-gray-400 text-sm uppercase tracking-wider\"><i class=\"fas fa-plug text-lg mr-1\"><\/i>Port<\/div>\n        <div class=\"text-3xl font-bold text-blue-400\">${port}<\/div>\n      <\/div>\n      <div class=\"text-center md:text-left\">\n        <div class=\"text-gray-400 text-sm uppercase tracking-wider\"><i class=\"fas fa-clock text-lg mr-1\"><\/i>D\u00e9marr\u00e9 le<\/div>\n        <div class=\"text-xl font-bold text-blue-400\">${startTime.split(' ')[0]}<br><span class=\"text-base font-normal text-gray-400\">${startTime.split(' ')[1]}<\/span><\/div>\n      <\/div>\n    <\/div>\n\n    <h2 class=\"text-2xl font-bold text-blue-400 mb-4 flex items-center gap-2\"><i class=\"fas fa-lightbulb\"><\/i> Exemples d'utilisation<\/h2>\n    <div class=\"grid grid-cols-1 md:grid-cols-3 gap-5 mb-8\">\n      <div class=\"bg-gray-800 rounded-xl p-6 shadow-lg border-l-4 border-blue-500 hover:shadow-xl transition\">\n        <i class=\"fas fa-globe text-3xl text-blue-400 mb-3\"><\/i>\n        <h3 class=\"text-xl font-semibold text-white\">Site web<\/h3>\n        <p class=\"text-gray-300\">Servez des pages HTML, CSS, JavaScript, ou utilisez Express pour cr\u00e9er une application web compl\u00e8te.<\/p>\n      <\/div>\n      <div class=\"bg-gray-800 rounded-xl p-6 shadow-lg border-l-4 border-blue-500 hover:shadow-xl transition\">\n        <i class=\"fab fa-discord text-3xl text-blue-400 mb-3\"><\/i>\n        <h3 class=\"text-xl font-semibold text-white\">Bot Discord<\/h3>\n        <p class=\"text-gray-300\">D\u00e9veloppez un bot interactif avec discord.js, g\u00e9rez des commandes, de la musique, etc.<\/p>\n      <\/div>\n      <div class=\"bg-gray-800 rounded-xl p-6 shadow-lg border-l-4 border-blue-500 hover:shadow-xl transition\">\n        <i class=\"fas fa-cogs text-3xl text-blue-400 mb-3\"><\/i>\n        <h3 class=\"text-xl font-semibold text-white\">API REST<\/h3>\n        <p class=\"text-gray-300\">Construisez une API l\u00e9g\u00e8re pour votre application mobile ou votre site, avec base de donn\u00e9es.<\/p>\n      <\/div>\n    <\/div>\n\n    <h2 class=\"text-2xl font-bold text-blue-400 mb-4 flex items-center gap-2\"><i class=\"fas fa-headset\"><\/i> Support<\/h2>\n    <div class=\"flex flex-wrap gap-4 mb-8\">\n      <a href=\"https:\/\/neoheberg.fr\/\" target=\"_blank\" class=\"bg-gray-800 hover:bg-blue-600 text-white border border-gray-700 rounded-full px-6 py-3 font-semibold inline-flex items-center gap-2 shadow-md transition\">\n        <i class=\"fas fa-globe\"><\/i> Site officiel\n      <\/a>\n      <a href=\"https:\/\/discord.neoheberg.fr\/\" target=\"_blank\" class=\"bg-gray-800 hover:bg-blue-600 text-white border border-gray-700 rounded-full px-6 py-3 font-semibold inline-flex items-center gap-2 shadow-md transition\">\n        <i class=\"fab fa-discord\"><\/i> Discord NeoHeberg\n      <\/a>\n    <\/div>\n\n    <div class=\"text-center text-gray-500 text-sm border-t border-gray-700 pt-6\">\n      <i class=\"far fa-copyright mr-1\"><\/i> 2026 <span class=\"font-semibold text-blue-400\">NeoHeberg - Pterodactyl NodeJS Egg<\/span> \u2014 Tous droits r\u00e9serv\u00e9s.<\/div>\n  <\/div>\n<\/body>\n<\/html>\n  `);\n});\n\nserver.listen(port, '0.0.0.0', () => {\n  console.clear();\n  const now = new Date().toLocaleString('fr-FR', { timeZone: 'Europe\/Paris' });\n  const reset = '\\x1b[0m';\n  const cyan = '\\x1b[36m';\n  \n  console.log(`${cyan}\u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510${reset}`);\n  console.log(`${cyan}\u2502       \ud83d\ude80 NeoHeberg Node.js                   \u2502${reset}`);\n  console.log(`${cyan}\u251c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2524${reset}`);\n  console.log(`${cyan}\u2502   \ud83d\udd25 Node version : ${process.version.padEnd(21)}    \u2502${reset}`);\n  console.log(`${cyan}\u2502   \ud83d\udeaa Port : ${port.toString().padEnd(28)}     \u2502${reset}`);\n  console.log(`${cyan}\u2502   \ud83d\udd52 D\u00e9marr\u00e9 \u00e0 : ${now.padEnd(22)}      \u2502${reset}`);\n  console.log(`${cyan}\u251c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2524${reset}`);\n  console.log(`${cyan}\u2502   \u00a9 2026 NeoHeberg - Tous droits r\u00e9serv\u00e9s   \u2502${reset}`);\n  console.log(`${cyan}\u2502   Fait avec \u2764\ufe0f par NeoHeberg                 \u2502${reset}`);\n  console.log(`${cyan}\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518${reset}`);\n});\n\nprocess.on('SIGTERM', () => {\n  server.close(() => process.exit(0));\n});\nEOF\nfi\n\necho \"\u2705 Installation termin\u00e9e.\"",
-      "container": "node:22-bookworm-slim",
+      "script": "#!/bin/bash\n# NeoHeberg Node.js - installation initiale (non interactive).\n# Le setup interactif se fait au premier DEMARRAGE du serveur,\n# car la console Pterodactyl n'est pas interactive pendant l'installation.\nmkdir -p /mnt/server\necho \"NeoHeberg Node.js - installation initiale terminée.\"\necho \"Démarrez le serveur pour lancer le setup interactif.\"\n",
+      "container": "registry.axel-l.fr/neoheberg_egg/nodejs:latest",
       "entrypoint": "bash"
     }
   },
   "variables": [
     {
-      "name": "Installer des packages Node suppl\u00e9mentaires",
-      "description": "Packages npm \u00e0 installer au d\u00e9marrage (s\u00e9par\u00e9s par des espaces).",
-      "env_variable": "NODE_PACKAGES",
-      "default_value": "",
-      "user_viewable": true,
-      "user_editable": true,
-      "rules": "nullable|string",
-      "field_type": "text"
-    },
-    {
       "name": "Fichier principal",
-      "description": "Fichier JavaScript principal (ex: index.js, app.js).",
+      "description": "Fichier JS lancé par défaut quand aucune commande personnalisée n'est définie et que package.json n'a pas de script 'start'.",
       "env_variable": "MAIN_FILE",
       "default_value": "index.js",
       "user_viewable": true,
       "user_editable": true,
-      "rules": "required|string|max:16",
+      "rules": "required|string|max:64",
       "field_type": "text"
     },
     {
-      "name": "D\u00e9sinstaller des packages Node",
-      "description": "Packages npm \u00e0 d\u00e9sinstaller (s\u00e9par\u00e9s par des espaces).",
-      "env_variable": "UNNODE_PACKAGES",
+      "name": "Commande de démarrage personnalisée",
+      "description": "Commande complète pour lancer l'application (ex: node app.js). Laissez vide pour l'auto-détection (npm start, sinon le fichier principal).",
+      "env_variable": "STARTUP_CMD",
       "default_value": "",
       "user_viewable": true,
       "user_editable": true,
-      "rules": "nullable|string",
+      "rules": "nullable|string|max:512",
+      "field_type": "text"
+    },
+    {
+      "name": "Token du bot Discord",
+      "description": "Token utilisé par le modèle de bot Discord généré au setup (optionnel).",
+      "env_variable": "DISCORD_TOKEN",
+      "default_value": "",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "nullable|string|max:256",
       "field_type": "text"
     }
   ]
