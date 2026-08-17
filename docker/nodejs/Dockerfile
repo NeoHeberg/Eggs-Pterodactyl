@@ -39,6 +39,14 @@ RUN apt-get update \
         xz-utils \
     && rm -rf /var/lib/apt/lists/*
 
+# Utilisateur « container » (UID du conteneur Pterodactyl).
+# Sans entrée /etc/passwd pour l'UID du conteneur, os.homedir() (Node.js) et
+# npm résolvent le répertoire home vers / (rootfs en lecture seule) → erreurs.
+# L'UID doit correspondre à celui utilisé par Wings : `id pterodactyl` sur
+# l'hôte (valeur par défaut de Wings si non configuré : 988).
+ARG PTERO_UID=988
+RUN useradd -d /home/container -m -u ${PTERO_UID} container
+
 # fnm (Fast Node Manager) — binaire glibc x64, version épinglée.
 ARG FNM_VERSION=1.39.0
 RUN curl -fsSL "https://github.com/Schniz/fnm/releases/download/v${FNM_VERSION}/fnm-linux.zip" \
