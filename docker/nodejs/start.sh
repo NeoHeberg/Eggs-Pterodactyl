@@ -46,6 +46,9 @@ if [[ -z "$NODE_VERSION" ]]; then
     exit 1
 fi
 
+# --- Initialisation de l'environnement fnm (requis avant `fnm use`) ---
+eval "$(fnm env)"
+
 # --- Installation de la version (idempotent) ---
 if ! fnm list 2>/dev/null | grep -qwE "v?${NODE_VERSION#v}"; then
     echo ""

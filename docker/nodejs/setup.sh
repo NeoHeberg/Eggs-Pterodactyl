@@ -8,7 +8,7 @@ set -uo pipefail
 #  Exécuté au premier démarrage (quand .neoheberg_installed n'existe pas).
 # =============================================================================
 
-R="\e[0m"; B="\e[1m"; DIM="\e[2m"; RED="\e[31m"; GRN="\e[32m"; YLW="\e[33m"; CYN="\e[36m"
+R=$'\e[0m'; B=$'\e[1m'; DIM=$'\e[2m'; RED=$'\e[31m'; GRN=$'\e[32m'; YLW=$'\e[33m'; CYN=$'\e[36m'
 
 # Copié dans le volume avec start.sh : on résout les chemins par rapport
 # à la position du script (fonctionne aussi bien dans le volume que dans l'image).
