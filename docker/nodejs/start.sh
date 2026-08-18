@@ -22,6 +22,10 @@ export HOME="/home/container"
 # npm doit utiliser un cache situé dans le volume (le rootfs du conteneur est en
 # lecture seule, et os.homedir() peut renvoyer / si l'UID n'est pas dans /etc/passwd).
 export NPM_CONFIG_CACHE="/home/container/.npm"
+# Désactive la notification « nouvelle version de npm disponible » (npm notice
+# "New major version of npm available! ...") : inutile dans un conteneur où npm
+# est fourni par fnm et réinstallé en même temps que Node.js.
+export NPM_CONFIG_UPDATE_NOTIFIER=false
 export FNM_DIR="${FNM_DIR:-/home/container/.fnm}"
 export FNM_VERSION_FILE_STRATEGY="local"
 export PATH="/usr/local/bin:${FNM_DIR}:${PATH}"
