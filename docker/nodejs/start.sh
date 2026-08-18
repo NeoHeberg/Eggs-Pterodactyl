@@ -60,7 +60,7 @@ fi
 NODE_INSTALL_DIR="${FNM_DIR}/node-versions/v${NODE_VERSION#v}/installation"
 if [[ ! -x "${NODE_INSTALL_DIR}/bin/node" ]]; then
     echo ""
-    echo ">>> Installation de Node.js ${NODE_VERSION} (téléchargement, première fois)..."
+    echo ">>> Installation de Node.js ${NODE_VERSION}"
     fnm install "${NODE_VERSION}"
 fi
 
