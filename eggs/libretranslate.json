@@ -6,15 +6,13 @@
   },
   "exported_at": "2026-11-17T00:00:00+01:00",
   "name": "LibreTranslate NeoHeberg",
-  "author": "axel-l@neoheberg.fr",
+  "author": "slownover@neoheberg.fr",
   "description": "Egg LibreTranslate NeoHeberg : API de traduction libre et auto-hébergée (https://libretranslate.com). Choix des langues chargées, limites, clés API gérables depuis la console. Cloudflare Tunnel intégré (token ou tunnel rapide) avec mise à jour automatique et vérifiée (SHA-256) de cloudflared. Image runtime hébergée sur le registry Harbor NeoHeberg (registry.axel-l.fr).",
   "features": [],
   "docker_images": {
     "LibreTranslate NeoHeberg": "registry.axel-l.fr/neoheberg_egg/libretranslate:latest"
   },
-  "file_denylist": [
-    ".neoheberg/**"
-  ],
+  "file_denylist": [".neoheberg/**"],
   "startup": "bash ./.neoheberg/start.sh",
   "config": {
     "files": "{}",
