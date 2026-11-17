@@ -86,7 +86,7 @@ RUN curl -fsSL "https://github.com/cloudflare/cloudflared/releases/download/${CL
 
 # Scripts NeoHeberg
 RUN mkdir -p /usr/local/share/neoheberg/libretranslate
-COPY start.sh tunnel.sh models.py /usr/local/share/neoheberg/libretranslate/
+COPY start.sh tunnel.sh models.py lt_run.py /usr/local/share/neoheberg/libretranslate/
 RUN chmod +x /usr/local/share/neoheberg/libretranslate/*.sh
 
 # ENTRYPOINT : exécute la commande de démarrage fournie par Pterodactyl via

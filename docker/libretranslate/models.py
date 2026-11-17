@@ -16,16 +16,16 @@ Pourquoi ne pas utiliser --load-only de LibreTranslate ?
   que les modèles utiles dans le bon sens (~2x moins de disque), LibreTranslate
   fait ensuite le pivot X -> en -> fr tout seul.
 
-LibreTranslate ne réinstalle rien au démarrage tant qu'au moins 2 modèles sont
-présents (sans --update-models) : il utilise donc exactement ce qui est
-installé ici.
+LibreTranslate est lancé via lt_run.py, qui désactive son installation
+automatique des modèles : il utilise exactement ce qui est installé ici.
 
-Le résultat est mémorisé dans ~/.neoheberg/models.conf : tant que la
-configuration ne change pas (et sans mise à jour demandée), le script ne
-contacte pas le réseau, ce qui garde un démarrage rapide.
+Le résultat (configuration + liste des modèles) est mémorisé dans
+~/.neoheberg/models.conf : tant que rien ne change (et sans mise à jour
+demandée), le script ne contacte pas le réseau, ce qui garde un démarrage
+rapide. Les modèles en trop sont supprimés à la synchronisation suivante.
 """
 
-import os
+import json
 import sys
 from pathlib import Path
 
@@ -40,6 +40,15 @@ STATE_FILE = Path.home() / ".neoheberg" / "models.conf"
 
 def log(msg):
     print(f"\x1b[35m[modèles]\x1b[0m {msg}", flush=True)
+
+
+def read_state():
+    """État de la dernière synchronisation ({} si absent ou ancien format)."""
+    try:
+        data = json.loads(STATE_FILE.read_text())
+        return data if isinstance(data, dict) else {}
+    except (OSError, ValueError):
+        return {}
 
 
 def parse_codes(value):
@@ -74,10 +83,18 @@ def main():
     config = f"sources={'all' if sources is None else ','.join(sorted(sources))};targets={','.join(sorted(targets))}"
 
     installed = package.get_installed_packages()
-    previous = STATE_FILE.read_text().strip() if STATE_FILE.exists() else ""
-    if previous == config and not update and len(installed) >= 2:
-        log(f"{len(installed)} modèles installés, configuration inchangée.")
+    installed_pairs = sorted(f"{p.from_code}>{p.to_code}" for p in installed)
+    state = read_state()
+    # Sans réseau tant que la configuration ET la liste des modèles installés
+    # correspondent à la dernière synchronisation. Un écart (modèles ajoutés
+    # par une autre source, supprimés à la main...) déclenche une resynchro.
+    if (not update and installed
+            and state.get("config") == config
+            and state.get("pairs") == installed_pairs):
+        log(f"{len(installed)} modèle(s) installé(s), configuration inchangée.")
         return 0
+    if state.get("config") == config and state.get("pairs") != installed_pairs:
+        log("Les modèles installés ne correspondent pas à la configuration : resynchronisation.")
 
     log("Récupération de l'index des modèles...")
     package.update_package_index()
@@ -110,6 +127,15 @@ def main():
 
     by_pair = {(p.from_code, p.to_code): p for p in installed}
     selected_pairs = {(p.from_code, p.to_code) for p in selected}
+
+    # Archives laissées par un téléchargement interrompu (arrêt du serveur
+    # pendant l'installation) : Argos les supprime normalement après usage.
+    try:
+        from argostranslate import settings
+        for leftover in Path(settings.downloads_dir).glob("*.argosmodel"):
+            leftover.unlink(missing_ok=True)
+    except Exception:
+        pass
 
     # Suppression des modèles devenus inutiles (libère du disque).
     for pair, pack in by_pair.items():
@@ -144,9 +170,13 @@ def main():
         log(f"\x1b[33mMiniSBD : {e}\x1b[0m")
 
     if failures == 0:
+        final = package.get_installed_packages()
         STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
-        STATE_FILE.write_text(config + "\n")
-        log(f"Terminé : {len(package.get_installed_packages())} modèles installés.")
+        STATE_FILE.write_text(json.dumps({
+            "config": config,
+            "pairs": sorted(f"{p.from_code}>{p.to_code}" for p in final),
+        }) + "\n")
+        log(f"Terminé : {len(final)} modèle(s) installé(s).")
     else:
         log(f"\x1b[33m{failures} modèle(s) en échec — nouvel essai au prochain démarrage.\x1b[0m")
     return 0

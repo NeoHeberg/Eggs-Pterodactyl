@@ -1,3 +1,4 @@
 **.DS_Store
 /.codewhale/
-**.vscode
+**.vscode__pycache__/
+*.pyc

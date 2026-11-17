@@ -147,11 +147,11 @@ fi
 "${LT_VENV}/bin/python" "${SCRIPT_DIR}/models.py" "$LANGUAGES" "$TARGET_LANGUAGES" "$UPDATE_MODELS" &
 MODELS_PID=$!
 if ! wait "$MODELS_PID"; then
-    # Garde-fou : avec moins de 2 modèles installés, LibreTranslate
-    # téléchargerait TOUS les modèles (~100, plus de 10 Go). On s'arrête.
+    # Sans aucun modèle, LibreTranslate n'aurait aucune langue : on s'arrête.
+    # (Son installation automatique est désactivée par lt_run.py.)
     PKG_DIR="${HOME}/.local/share/argos-translate/packages"
     PKG_COUNT="$(find "$PKG_DIR" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l)"
-    if (( PKG_COUNT < 2 )); then
+    if (( PKG_COUNT < 1 )); then
         err "Installation des modèles impossible (réseau ? langues invalides ?) — démarrage annulé."
         [[ -n "$CF_SUP_PID" ]] && kill -TERM "$CF_SUP_PID" 2>/dev/null && wait "$CF_SUP_PID" 2>/dev/null
         exit 1
@@ -161,7 +161,9 @@ fi
 MODELS_PID=""
 
 # --- LibreTranslate ----------------------------------------------------------
-"${LT_VENV}/bin/libretranslate" "${LT_ARGS[@]}" &
+# Via lt_run.py : même CLI que `libretranslate`, sans l'installation
+# automatique des modèles (qui téléchargerait les ~100 modèles).
+"${LT_VENV}/bin/python" "${SCRIPT_DIR}/lt_run.py" "${LT_ARGS[@]}" &
 LT_PID=$!
 
 # --- Arrêt propre (^C envoyé par le panel / SIGTERM de Docker) ---------------
