@@ -52,6 +52,14 @@ serveurs existants : ils continuent d'utiliser l'image déjà téléchargée.
 - **Correctif critique de sécurité** : les nouveaux serveurs sont protégés ;
   les serveurs existants doivent être réinstallés manuellement.
 
+## Exception : cloudflared (egg LibreTranslate)
+
+Le binaire `cloudflared` de l'egg LibreTranslate n'est **pas** figé : il est
+stocké dans le volume du serveur (`.neoheberg/bin/cloudflared`) et se met à
+jour tout seul (au démarrage puis toutes les N heures), après vérification de
+son empreinte SHA-256. Aucune réinstallation n'est nécessaire pour suivre les
+nouvelles versions de cloudflared.
+
 ## Comment mettre à jour un serveur existant
 
 1. **Réinstaller le serveur** (bouton « Réinstaller » du panel) :

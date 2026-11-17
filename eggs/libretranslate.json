@@ -1,0 +1,154 @@
+{
+  "_comment": "DO NOT EDIT: FILE GENERATED AUTOMATICALLY BY PTERODACTYL PANEL - PTERODACTYL.IO",
+  "meta": {
+    "version": "PTDL_v2",
+    "update_url": null
+  },
+  "exported_at": "2026-11-17T00:00:00+01:00",
+  "name": "LibreTranslate NeoHeberg",
+  "author": "axel-l@neoheberg.fr",
+  "description": "Egg LibreTranslate NeoHeberg : API de traduction libre et auto-hébergée (https://libretranslate.com). Choix des langues chargées, limites, clés API gérables depuis la console. Cloudflare Tunnel intégré (token ou tunnel rapide) avec mise à jour automatique et vérifiée (SHA-256) de cloudflared. Image runtime hébergée sur le registry Harbor NeoHeberg (registry.axel-l.fr).",
+  "features": [],
+  "docker_images": {
+    "LibreTranslate NeoHeberg": "registry.axel-l.fr/neoheberg_egg/libretranslate:latest"
+  },
+  "file_denylist": [
+    ".neoheberg/**"
+  ],
+  "startup": "bash ./.neoheberg/start.sh",
+  "config": {
+    "files": "{}",
+    "startup": "{\"done\": \"Running on \"}",
+    "logs": "{}",
+    "stop": "^C"
+  },
+  "scripts": {
+    "installation": {
+      "script": "#!/bin/bash\nset -euo pipefail\n\n# =============================================================================\n#  NeoHeberg · Egg LibreTranslate — installation\n#  ---------------------------------------------------------------------------\n#  Télécharge les scripts NeoHeberg depuis le dépôt GitHub de l'organisation :\n#    https://github.com/NeoHeberg/Eggs-Pterodactyl\n#  En cas d'échec, utilise la copie embarquée dans l'image Docker.\n#\n#  Pour figer une version précise, remplacez `main` par un tag ou un sha\n#  dans RAW_BASE ci-dessous.\n# =============================================================================\n\nRAW_BASE=\"https://raw.githubusercontent.com/NeoHeberg/Eggs-Pterodactyl/main/docker/libretranslate\"\nIMAGE_DIR=\"/usr/local/share/neoheberg/libretranslate\"\n\ncd /mnt/server\nmkdir -p .neoheberg db\n\n#   $1 : nom du fichier (relatif à RAW_BASE)\n#   $2 : libellé affiché\ndownload() {\n    local file=\"$1\" label=\"$2\"\n    echo \"\"\n    echo \">>> ${label}\"\n    if curl -Lf --progress-bar \"${RAW_BASE}/${file}\" -o \".neoheberg/${file}\"; then\n        echo \"   OK : .neoheberg/${file}\"\n    elif [[ -f \"${IMAGE_DIR}/${file}\" ]]; then\n        echo \"   GitHub injoignable : copie depuis l'image Docker.\"\n        cp \"${IMAGE_DIR}/${file}\" \".neoheberg/${file}\"\n    else\n        echo \"   ERREUR : impossible de récupérer ${file}\"\n        return 1\n    fi\n}\n\ndownload \"start.sh\"  \"Script de démarrage (start.sh)\"\ndownload \"tunnel.sh\" \"Script Cloudflare Tunnel (tunnel.sh)\"\n\nchmod +x .neoheberg/start.sh .neoheberg/tunnel.sh\n\necho \"\"\necho \"NeoHeberg LibreTranslate — installation terminée.\"\necho \"Au premier démarrage, les modèles de langue choisis seront téléchargés (quelques minutes).\"",
+      "container": "registry.axel-l.fr/neoheberg_egg/libretranslate:latest",
+      "entrypoint": "bash"
+    }
+  },
+  "variables": [
+    {
+      "name": "Langues chargées",
+      "description": "Codes de langue séparés par des virgules (ex : en,fr,es,de). Seuls les modèles nécessaires sont téléchargés. Laissez vide pour TOUTES les langues (plusieurs Go de disque et beaucoup de RAM). L'anglais (en) sert de pivot : gardez-le.",
+      "env_variable": "LANGUAGES",
+      "default_value": "en,fr",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "nullable|string|max:512|regex:/^[a-zA-Z, -]*$/",
+      "field_type": "text"
+    },
+    {
+      "name": "Threads",
+      "description": "Nombre de threads utilisés par LibreTranslate pour servir les requêtes.",
+      "env_variable": "THREADS",
+      "default_value": "4",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "required|integer|min:1|max:64",
+      "field_type": "text"
+    },
+    {
+      "name": "Limite de caractères",
+      "description": "Nombre maximum de caractères par requête (-1 = illimité).",
+      "env_variable": "CHAR_LIMIT",
+      "default_value": "5000",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "required|integer|min:-1",
+      "field_type": "text"
+    },
+    {
+      "name": "Limite de requêtes / minute",
+      "description": "Nombre maximum de requêtes par minute et par client (-1 = illimité).",
+      "env_variable": "REQ_LIMIT",
+      "default_value": "-1",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "required|integer|min:-1",
+      "field_type": "text"
+    },
+    {
+      "name": "Clés API",
+      "description": "Active la base de clés API (limites par clé). Gérez les clés depuis la console : « keys », « keys add 60 », « keys remove <clé> ».",
+      "env_variable": "API_KEYS",
+      "default_value": "false",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "required|string|in:true,false",
+      "field_type": "text"
+    },
+    {
+      "name": "Interface web",
+      "description": "Active l'interface web de traduction (sinon : API uniquement).",
+      "env_variable": "WEB_UI",
+      "default_value": "true",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "required|string|in:true,false",
+      "field_type": "text"
+    },
+    {
+      "name": "Mettre à jour les modèles au démarrage",
+      "description": "Vérifie et installe les nouvelles versions des modèles de langue à chaque démarrage (démarrage plus lent).",
+      "env_variable": "UPDATE_MODELS",
+      "default_value": "false",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "required|string|in:true,false",
+      "field_type": "text"
+    },
+    {
+      "name": "Arguments supplémentaires",
+      "description": "Arguments LibreTranslate avancés, séparés par des espaces (ex : --frontend-language-target fr --disable-files-translation). Voir libretranslate --help.",
+      "env_variable": "EXTRA_ARGS",
+      "default_value": "",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "nullable|string|max:512",
+      "field_type": "text"
+    },
+    {
+      "name": "Cloudflare Tunnel — mode",
+      "description": "off : pas de tunnel. token : tunnel géré depuis le dashboard Cloudflare Zero Trust (nécessite le token ; configurez le service public vers http://localhost:<port du serveur>). quick : tunnel rapide trycloudflare.com sans compte (URL aléatoire, tests uniquement).",
+      "env_variable": "CF_TUNNEL_MODE",
+      "default_value": "off",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "required|string|in:off,token,quick",
+      "field_type": "text"
+    },
+    {
+      "name": "Cloudflare Tunnel — token",
+      "description": "Token du tunnel (Zero Trust > Networks > Tunnels > votre tunnel > Install connector : la longue chaîne après « --token » / « run »).",
+      "env_variable": "CF_TUNNEL_TOKEN",
+      "default_value": "",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "nullable|string|max:2048",
+      "field_type": "text"
+    },
+    {
+      "name": "Cloudflare Tunnel — mise à jour auto",
+      "description": "Met à jour automatiquement cloudflared (dernière release GitHub, empreinte SHA-256 vérifiée). Seul le tunnel redémarre, LibreTranslate n'est pas interrompu.",
+      "env_variable": "CF_AUTOUPDATE",
+      "default_value": "true",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "required|string|in:true,false",
+      "field_type": "text"
+    },
+    {
+      "name": "Cloudflare Tunnel — intervalle de mise à jour (h)",
+      "description": "Intervalle en heures entre deux vérifications de mise à jour de cloudflared (minimum 1). Une vérification a toujours lieu au démarrage.",
+      "env_variable": "CF_UPDATE_INTERVAL",
+      "default_value": "24",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "required|integer|min:1|max:720",
+      "field_type": "text"
+    }
+  ]
+}

@@ -1,0 +1,96 @@
+# =============================================================================
+# Build + push de l'image Docker LibreTranslate (runtime NeoHeberg)
+# -----------------------------------------------------------------------------
+# Construit l'image runtime LibreTranslate (Python slim + venv LibreTranslate
+# + cloudflared de secours) et la pousse sur le registry Harbor auto-hébergé
+# (registry.axel-l.fr, projet `neoheberg_egg`, dépôt `libretranslate`).
+#
+# Déclencheurs :
+#   - push sur `main` qui touche le Dockerfile / les scripts de l'image ;
+#   - lancement manuel (workflow_dispatch) depuis l'onglet Actions, avec
+#     possibilité de choisir la version de LibreTranslate.
+#
+# L'image est taguée :
+#   - `latest`                -> tirée par Pterodactyl lors des nouvelles installations ;
+#   - `<version LibreTranslate>` -> ex : 1.9.6 ;
+#   - `<sha du commit>`       -> traçabilité / rollback.
+#
+# Note : cloudflared n'a pas besoin d'un rebuild pour être mis à jour, il se
+# met à jour tout seul dans le volume des serveurs (voir tunnel.sh).
+#
+# Authentification : robot account Harbor `robot$pusher`
+# (secrets du repo HARBOR_USERNAME / HARBOR_PASSWORD).
+# =============================================================================
+
+name: 🐳 Build LibreTranslate — NeoHeberg Egg
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'docker/libretranslate/**'
+      - '.github/workflows/build-libretranslate-image.yml'
+  workflow_dispatch:
+    inputs:
+      lt_version:
+        description: 'Version de LibreTranslate (PyPI). Vide = valeur du Dockerfile.'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  build-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      # Version : input manuel, sinon ARG LT_VERSION du Dockerfile.
+      - name: Resolve LibreTranslate version
+        id: version
+        env:
+          INPUT_VERSION: ${{ github.event.inputs.lt_version }}
+        run: |
+          VERSION="${INPUT_VERSION:-}"
+          if [ -z "$VERSION" ]; then
+            VERSION="$(grep -m1 -E '^ARG LT_VERSION=' docker/libretranslate/Dockerfile | cut -d= -f2)"
+          fi
+          if ! echo "$VERSION" | grep -Eq '^[0-9]+(\.[0-9]+)*$'; then
+            echo "Version invalide : '$VERSION'" >&2
+            exit 1
+          fi
+          echo "lt_version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      # Builder buildx avec le driver `docker-container` : requis pour le
+      # cache `type=gha`.
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Login to Harbor
+        uses: docker/login-action@v4
+        with:
+          registry: registry.axel-l.fr
+          username: ${{ secrets.HARBOR_USERNAME }}
+          password: ${{ secrets.HARBOR_PASSWORD }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v7
+        with:
+          context: ./docker/libretranslate
+          file: ./docker/libretranslate/Dockerfile
+          push: true
+          build-args: |
+            LT_VERSION=${{ steps.version.outputs.lt_version }}
+          cache-from: type=gha,scope=libretranslate
+          cache-to: type=gha,mode=max,scope=libretranslate
+          tags: |
+            registry.axel-l.fr/neoheberg_egg/libretranslate:latest
+            registry.axel-l.fr/neoheberg_egg/libretranslate:${{ steps.version.outputs.lt_version }}
+            registry.axel-l.fr/neoheberg_egg/libretranslate:${{ github.sha }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.version=${{ steps.version.outputs.lt_version }}
