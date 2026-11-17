@@ -41,13 +41,13 @@
 - **Auteurs** : Axel Lalaut & Slownover (équipe NeoHeberg).
 - **Description** : Egg pour héberger [LibreTranslate](https://libretranslate.com), une API de traduction libre et auto-hébergée. Il intègre :
   - Une image runtime (Python slim + LibreTranslate installé depuis PyPI) construite par GitHub Actions et poussée sur le registry Harbor NeoHeberg (`registry.axel-l.fr/neoheberg_egg/libretranslate`). La version de LibreTranslate est fixée par `ARG LT_VERSION` dans le [Dockerfile](docker/libretranslate/Dockerfile) (ou choisie au lancement manuel du workflow).
-  - Le choix des langues chargées (`en,fr` par défaut) : seuls les modèles nécessaires sont téléchargés au premier démarrage, dans le volume persistant.
+  - Traduction de **n'importe quelle langue vers le français** par défaut (langues source `all`, cible `fr`, détection automatique de la langue d'origine). Les modèles sont installés **par direction** (source → anglais, puis anglais → cible) dans le volume persistant : ~50 modèles au lieu de ~100 avec `--load-only`. Les langues source peuvent être restreintes pour économiser du disque (ex : `en,ru,ms,es,de`).
   - Les limites de caractères / requêtes, l'interface web activable, et des **clés API gérables depuis la console** du panel (`keys`, `keys add 60`, `keys remove <clé>` ; tapez `help`).
   - Un **Cloudflare Tunnel** intégré, au choix :
     - `token` : tunnel géré depuis le dashboard Cloudflare Zero Trust (service public à pointer vers `http://localhost:<port du serveur>`) ;
     - `quick` : tunnel rapide `trycloudflare.com` sans compte (URL aléatoire, pour les tests).
   - La **mise à jour automatique de cloudflared** : le binaire vit dans le volume (`.neoheberg/bin/cloudflared`), une vérification a lieu au démarrage puis toutes les N heures (24 h par défaut). Chaque nouvelle version est vérifiée (empreinte SHA-256 publiée par GitHub + `cloudflared --version`) avant d'être installée, puis seul le tunnel redémarre : LibreTranslate n'est pas interrompu. Commandes console : `tunnel`, `tunnel update`, `tunnel restart`.
-- **Ressources conseillées** : ~1 à 2 Go de RAM et ~1 Go de disque pour quelques langues ; charger toutes les langues demande plusieurs Go.
+- **Ressources conseillées** : ~8 Go de disque avec toutes les langues source (~1 Go pour 5 langues) ; 2 à 4 Go de RAM (les modèles sont chargés en mémoire au fur et à mesure des langues réellement traduites).
 - **Mise à jour** : cloudflared se met à jour tout seul ; LibreTranslate lui-même suit l'image Docker (voir [docs/mise-a-jour-eggs.md](docs/mise-a-jour-eggs.md)).
 - **Licence** : mêmes conditions que l'egg Node.js NeoHeberg. LibreTranslate est distribué sous licence [AGPL-3.0](https://github.com/LibreTranslate/LibreTranslate/blob/main/LICENSE) et cloudflared sous licence [Apache-2.0](https://github.com/cloudflare/cloudflared/blob/master/LICENSE).
 

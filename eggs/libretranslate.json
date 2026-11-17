@@ -7,7 +7,7 @@
   "exported_at": "2026-11-17T00:00:00+01:00",
   "name": "LibreTranslate NeoHeberg",
   "author": "slownover@neoheberg.fr",
-  "description": "Egg LibreTranslate NeoHeberg : API de traduction libre et auto-hébergée (https://libretranslate.com). Choix des langues chargées, limites, clés API gérables depuis la console. Cloudflare Tunnel intégré (token ou tunnel rapide) avec mise à jour automatique et vérifiée (SHA-256) de cloudflared. Image runtime hébergée sur le registry Harbor NeoHeberg (registry.axel-l.fr).",
+  "description": "Egg LibreTranslate NeoHeberg : API de traduction libre et auto-hébergée (https://libretranslate.com). Traduction de n'importe quelle langue (détection auto) vers la ou les langues cibles, modèles installés par direction via l'anglais, limites, clés API gérables depuis la console. Cloudflare Tunnel intégré (token ou tunnel rapide) avec mise à jour automatique et vérifiée (SHA-256) de cloudflared. Image runtime hébergée sur le registry Harbor NeoHeberg (registry.axel-l.fr).",
   "features": [],
   "docker_images": {
     "LibreTranslate NeoHeberg": "registry.axel-l.fr/neoheberg_egg/libretranslate:latest"
@@ -22,20 +22,30 @@
   },
   "scripts": {
     "installation": {
-      "script": "#!/bin/bash\nset -euo pipefail\n\n# =============================================================================\n#  NeoHeberg · Egg LibreTranslate — installation\n#  ---------------------------------------------------------------------------\n#  Télécharge les scripts NeoHeberg depuis le dépôt GitHub de l'organisation :\n#    https://github.com/NeoHeberg/Eggs-Pterodactyl\n#  En cas d'échec, utilise la copie embarquée dans l'image Docker.\n#\n#  Pour figer une version précise, remplacez `main` par un tag ou un sha\n#  dans RAW_BASE ci-dessous.\n# =============================================================================\n\nRAW_BASE=\"https://raw.githubusercontent.com/NeoHeberg/Eggs-Pterodactyl/main/docker/libretranslate\"\nIMAGE_DIR=\"/usr/local/share/neoheberg/libretranslate\"\n\ncd /mnt/server\nmkdir -p .neoheberg db\n\n#   $1 : nom du fichier (relatif à RAW_BASE)\n#   $2 : libellé affiché\ndownload() {\n    local file=\"$1\" label=\"$2\"\n    echo \"\"\n    echo \">>> ${label}\"\n    if curl -Lf --progress-bar \"${RAW_BASE}/${file}\" -o \".neoheberg/${file}\"; then\n        echo \"   OK : .neoheberg/${file}\"\n    elif [[ -f \"${IMAGE_DIR}/${file}\" ]]; then\n        echo \"   GitHub injoignable : copie depuis l'image Docker.\"\n        cp \"${IMAGE_DIR}/${file}\" \".neoheberg/${file}\"\n    else\n        echo \"   ERREUR : impossible de récupérer ${file}\"\n        return 1\n    fi\n}\n\ndownload \"start.sh\"  \"Script de démarrage (start.sh)\"\ndownload \"tunnel.sh\" \"Script Cloudflare Tunnel (tunnel.sh)\"\n\nchmod +x .neoheberg/start.sh .neoheberg/tunnel.sh\n\necho \"\"\necho \"NeoHeberg LibreTranslate — installation terminée.\"\necho \"Au premier démarrage, les modèles de langue choisis seront téléchargés (quelques minutes).\"",
+      "script": "#!/bin/bash\nset -euo pipefail\n\n# =============================================================================\n#  NeoHeberg · Egg LibreTranslate — installation\n#  ---------------------------------------------------------------------------\n#  Télécharge les scripts NeoHeberg depuis le dépôt GitHub de l'organisation :\n#    https://github.com/NeoHeberg/Eggs-Pterodactyl\n#  En cas d'échec, utilise la copie embarquée dans l'image Docker.\n#\n#  Pour figer une version précise, remplacez `main` par un tag ou un sha\n#  dans RAW_BASE ci-dessous.\n# =============================================================================\n\nRAW_BASE=\"https://raw.githubusercontent.com/NeoHeberg/Eggs-Pterodactyl/main/docker/libretranslate\"\nIMAGE_DIR=\"/usr/local/share/neoheberg/libretranslate\"\n\ncd /mnt/server\nmkdir -p .neoheberg db\n\n#   $1 : nom du fichier (relatif à RAW_BASE)\n#   $2 : libellé affiché\ndownload() {\n    local file=\"$1\" label=\"$2\"\n    echo \"\"\n    echo \">>> ${label}\"\n    if curl -Lf --progress-bar \"${RAW_BASE}/${file}\" -o \".neoheberg/${file}\"; then\n        echo \"   OK : .neoheberg/${file}\"\n    elif [[ -f \"${IMAGE_DIR}/${file}\" ]]; then\n        echo \"   GitHub injoignable : copie depuis l'image Docker.\"\n        cp \"${IMAGE_DIR}/${file}\" \".neoheberg/${file}\"\n    else\n        echo \"   ERREUR : impossible de récupérer ${file}\"\n        return 1\n    fi\n}\n\ndownload \"start.sh\"  \"Script de démarrage (start.sh)\"\ndownload \"tunnel.sh\" \"Script Cloudflare Tunnel (tunnel.sh)\"\ndownload \"models.py\" \"Gestion des modèles de langue (models.py)\"\n\nchmod +x .neoheberg/start.sh .neoheberg/tunnel.sh\n\necho \"\"\necho \"NeoHeberg LibreTranslate — installation terminée.\"\necho \"Au premier démarrage, les modèles de langue choisis seront téléchargés (quelques minutes).\"",
       "container": "registry.axel-l.fr/neoheberg_egg/libretranslate:latest",
       "entrypoint": "bash"
     }
   },
   "variables": [
     {
-      "name": "Langues chargées",
-      "description": "Codes de langue séparés par des virgules (ex : en,fr,es,de). Seuls les modèles nécessaires sont téléchargés. Laissez vide pour TOUTES les langues (plusieurs Go de disque et beaucoup de RAM). L'anglais (en) sert de pivot : gardez-le.",
+      "name": "Langues source",
+      "description": "Langues d'origine des textes à traduire : codes séparés par des virgules (ex : en,ru,ms,es,de) ou « all » pour toutes les langues disponibles (~50 modèles, ~6-7 Go de disque). Seuls les modèles source -> anglais sont installés ; la traduction vers la cible passe par l'anglais. La langue est détectée automatiquement.",
       "env_variable": "LANGUAGES",
-      "default_value": "en,fr",
+      "default_value": "all",
       "user_viewable": true,
       "user_editable": true,
-      "rules": "nullable|string|max:512|regex:/^[a-zA-Z, -]*$/",
+      "rules": "required|string|max:512|regex:/^[a-zA-Z, -]*$/",
+      "field_type": "text"
+    },
+    {
+      "name": "Langues cible",
+      "description": "Langue(s) vers lesquelles traduire, séparées par des virgules (ex : fr). La première est la cible par défaut de l'interface web.",
+      "env_variable": "TARGET_LANGUAGES",
+      "default_value": "fr",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "required|string|max:128|regex:/^[a-zA-Z, -]*$/",
       "field_type": "text"
     },
     {
@@ -70,12 +80,12 @@
     },
     {
       "name": "Clés API",
-      "description": "Active la base de clés API (limites par clé). Gérez les clés depuis la console : « keys », « keys add 60 », « keys remove <clé> ».",
+      "description": "false : pas de clé. true : clés facultatives (limites par clé). required : clé OBLIGATOIRE, toute requête sans clé valide est refusée (recommandé si l'instance est exposée par le tunnel). Gérez les clés depuis la console : « keys », « keys add 120 », « keys remove <clé> ».",
       "env_variable": "API_KEYS",
       "default_value": "false",
       "user_viewable": true,
       "user_editable": true,
-      "rules": "required|string|in:true,false",
+      "rules": "required|string|in:false,true,required",
       "field_type": "text"
     },
     {
@@ -90,7 +100,7 @@
     },
     {
       "name": "Mettre à jour les modèles au démarrage",
-      "description": "Vérifie et installe les nouvelles versions des modèles de langue à chaque démarrage (démarrage plus lent).",
+      "description": "Vérifie et installe les nouvelles versions des modèles de langue à chaque démarrage (démarrage plus lent). Les modèles sont de toute façon (ré)installés quand les langues source / cible changent.",
       "env_variable": "UPDATE_MODELS",
       "default_value": "false",
       "user_viewable": true,

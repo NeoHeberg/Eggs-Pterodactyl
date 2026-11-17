@@ -50,11 +50,19 @@ fi
 
 # --- Variables du panel ------------------------------------------------------
 SERVER_PORT="${SERVER_PORT:-5000}"
-LANGUAGES="$(echo "${LANGUAGES:-}" | tr -d '[:space:]')"
+LANGUAGES="$(echo "${LANGUAGES:-all}" | tr -d '[:space:]')"
+[[ -z "$LANGUAGES" ]] && LANGUAGES="all"
+TARGET_LANGUAGES="$(echo "${TARGET_LANGUAGES:-fr}" | tr -d '[:space:]')"
+[[ -z "$TARGET_LANGUAGES" ]] && TARGET_LANGUAGES="fr"
 THREADS="${THREADS:-4}"
 CHAR_LIMIT="${CHAR_LIMIT:--1}"
 REQ_LIMIT="${REQ_LIMIT:--1}"
-API_KEYS="$(bool "${API_KEYS:-false}")"
+# Clés API : false (désactivées), true (facultatives : limites par clé),
+# required (obligatoires : toute requête sans clé valide est refusée).
+case "${API_KEYS:-false}" in
+    required|obligatoire) API_KEYS=required ;;
+    *) API_KEYS="$(bool "${API_KEYS:-false}")" ;;
+esac
 WEB_UI="$(bool "${WEB_UI:-true}")"
 UPDATE_MODELS="$(bool "${UPDATE_MODELS:-false}")"
 EXTRA_ARGS="${EXTRA_ARGS:-}"
@@ -72,26 +80,29 @@ echo ""
 echo -e "  ${CYN}${B}NeoHeberg · LibreTranslate${R} ${DIM}v${LT_VERSION:-?}${R}"
 echo -e "  ${DIM}─────────────────────────────────────────${R}"
 echo -e "  Port        : ${SERVER_PORT}"
-echo -e "  Langues     : ${LANGUAGES:-toutes ${YLW}(plusieurs Go de modèles !)${R}}"
+echo -e "  Sources     : $( [[ "$LANGUAGES" == all ]] && echo "toutes les langues disponibles" || echo "$LANGUAGES")"
+echo -e "  Cibles      : ${TARGET_LANGUAGES}"
 echo -e "  Clés API    : ${API_KEYS}"
 echo -e "  Tunnel CF   : ${CF_TUNNEL_MODE}$( [[ "$CF_TUNNEL_MODE" != off ]] && echo " (auto-update : ${CF_AUTOUPDATE})")"
 echo -e "  ${DIM}Tapez « help » dans la console pour la liste des commandes.${R}"
 echo ""
 
 # --- Arguments LibreTranslate ------------------------------------------------
+# Pas de --load-only / --update-models : les modèles sont gérés par models.py
+# (installation par direction : sources -> en -> cibles). Toutes les langues
+# installées sont exposées, la source par défaut de l'interface est « auto »
+# (détection) et la cible la première langue cible.
 LT_ARGS=(--host 0.0.0.0 --port "$SERVER_PORT" --threads "$THREADS"
-         --char-limit "$CHAR_LIMIT" --req-limit "$REQ_LIMIT")
-[[ -n "$LANGUAGES" ]]          && LT_ARGS+=(--load-only "$LANGUAGES")
-[[ "$API_KEYS" == true ]]      && LT_ARGS+=(--api-keys --api-keys-db-path "$API_KEYS_DB")
+         --char-limit "$CHAR_LIMIT" --req-limit "$REQ_LIMIT"
+         --frontend-language-source auto
+         --frontend-language-target "${TARGET_LANGUAGES%%,*}")
+[[ "$API_KEYS" != false ]]     && LT_ARGS+=(--api-keys --api-keys-db-path "$API_KEYS_DB")
+# --under-attack : LibreTranslate refuse (HTTP 400) toute requête sans clé.
+[[ "$API_KEYS" == required ]]  && LT_ARGS+=(--under-attack)
 [[ "$WEB_UI" == false ]]       && LT_ARGS+=(--disable-web-ui)
-[[ "$UPDATE_MODELS" == true ]] && LT_ARGS+=(--update-models)
 if [[ -n "$EXTRA_ARGS" ]]; then
     read -r -a EXTRA <<< "$EXTRA_ARGS"
     LT_ARGS+=("${EXTRA[@]}")
-fi
-
-if [[ ! -d "${HOME}/.local/share/argos-translate/packages" ]]; then
-    log "Premier démarrage : téléchargement des modèles de langue, cela peut prendre plusieurs minutes..."
 fi
 
 # --- Cloudflare Tunnel -------------------------------------------------------
@@ -117,6 +128,38 @@ case "$CF_TUNNEL_MODE" in
     *) warn "Mode tunnel inconnu « ${CF_TUNNEL_MODE} » (attendu : off, token, quick) — tunnel désactivé." ;;
 esac
 
+# --- Modèles de langue -------------------------------------------------------
+# Arrêt propre pendant le téléchargement (^C du panel).
+MODELS_PID=""
+abort_models() {
+    echo ""
+    log "Arrêt demandé pendant l'installation des modèles."
+    [[ -n "$MODELS_PID" ]] && kill -TERM "$MODELS_PID" 2>/dev/null
+    [[ -n "$CF_SUP_PID" ]] && kill -TERM "$CF_SUP_PID" 2>/dev/null
+    wait 2>/dev/null
+    exit 0
+}
+trap abort_models INT TERM
+
+if [[ ! -f "${HOME}/.neoheberg/models.conf" ]]; then
+    log "Premier démarrage : téléchargement des modèles de langue (plusieurs minutes, ~150 Mo par modèle)..."
+fi
+"${LT_VENV}/bin/python" "${SCRIPT_DIR}/models.py" "$LANGUAGES" "$TARGET_LANGUAGES" "$UPDATE_MODELS" &
+MODELS_PID=$!
+if ! wait "$MODELS_PID"; then
+    # Garde-fou : avec moins de 2 modèles installés, LibreTranslate
+    # téléchargerait TOUS les modèles (~100, plus de 10 Go). On s'arrête.
+    PKG_DIR="${HOME}/.local/share/argos-translate/packages"
+    PKG_COUNT="$(find "$PKG_DIR" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l)"
+    if (( PKG_COUNT < 2 )); then
+        err "Installation des modèles impossible (réseau ? langues invalides ?) — démarrage annulé."
+        [[ -n "$CF_SUP_PID" ]] && kill -TERM "$CF_SUP_PID" 2>/dev/null && wait "$CF_SUP_PID" 2>/dev/null
+        exit 1
+    fi
+    warn "L'installation des modèles a rencontré une erreur — démarrage avec les ${PKG_COUNT} modèles déjà présents."
+fi
+MODELS_PID=""
+
 # --- LibreTranslate ----------------------------------------------------------
 "${LT_VENV}/bin/libretranslate" "${LT_ARGS[@]}" &
 LT_PID=$!
@@ -137,7 +180,7 @@ trap shutdown INT TERM
 
 # --- Commandes console -------------------------------------------------------
 ltmanage() {
-    if [[ "$API_KEYS" != true ]]; then
+    if [[ "$API_KEYS" == false ]]; then
         warn "Les clés API sont désactivées (variable « Clés API » du panel)."
         return
     fi

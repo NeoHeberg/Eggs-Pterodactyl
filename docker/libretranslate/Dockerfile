@@ -12,7 +12,7 @@
 #
 # Les modèles de langue ne sont PAS dans l'image : ils sont téléchargés au
 # premier démarrage dans le volume (/home/container/.local/share/argos-translate)
-# selon les langues choisies dans le panel.
+# par models.py, selon les langues source / cible choisies dans le panel.
 # =============================================================================
 
 # -----------------------------------------------------------------------------
@@ -86,7 +86,7 @@ RUN curl -fsSL "https://github.com/cloudflare/cloudflared/releases/download/${CL
 
 # Scripts NeoHeberg
 RUN mkdir -p /usr/local/share/neoheberg/libretranslate
-COPY start.sh tunnel.sh /usr/local/share/neoheberg/libretranslate/
+COPY start.sh tunnel.sh models.py /usr/local/share/neoheberg/libretranslate/
 RUN chmod +x /usr/local/share/neoheberg/libretranslate/*.sh
 
 # ENTRYPOINT : exécute la commande de démarrage fournie par Pterodactyl via
