@@ -7,7 +7,7 @@
   "exported_at": "2026-11-17T00:00:00+01:00",
   "name": "LibreTranslate NeoHeberg",
   "author": "slownover@neoheberg.fr",
-  "description": "Egg LibreTranslate NeoHeberg : API de traduction libre et auto-hébergée (https://libretranslate.com). Traduction de n'importe quelle langue (détection auto) vers la ou les langues cibles, modèles installés par direction via l'anglais, limites, clés API gérables depuis la console. Cloudflare Tunnel intégré (token ou tunnel rapide) avec mise à jour automatique et vérifiée (SHA-256) de cloudflared. Image runtime hébergée sur le registry Harbor NeoHeberg (registry.axel-l.fr).",
+  "description": "Egg LibreTranslate NeoHeberg : API de traduction libre et auto-hébergée (https://libretranslate.com). Traduction de n'importe quelle langue (détection auto) vers la ou les langues cibles, et des cibles vers les langues de réponse (pour répondre dans la langue de l'interlocuteur), modèles installés par direction via l'anglais, limites, clés API gérables depuis la console. Cloudflare Tunnel intégré (token ou tunnel rapide) avec mise à jour automatique et vérifiée (SHA-256) de cloudflared. Image runtime hébergée sur le registry Harbor NeoHeberg (registry.axel-l.fr).",
   "features": [],
   "docker_images": {
     "LibreTranslate NeoHeberg": "registry.axel-l.fr/neoheberg_egg/libretranslate:latest"
@@ -46,6 +46,16 @@
       "user_viewable": true,
       "user_editable": true,
       "rules": "required|string|max:128|regex:/^[a-zA-Z, -]*$/",
+      "field_type": "text"
+    },
+    {
+      "name": "Langues de réponse",
+      "description": "Langues vers lesquelles traduire DEPUIS la langue cible, pour répondre dans la langue de l'interlocuteur (ex : réponse du support en français -> langue du client). Codes séparés par des virgules (ex : en,es,de), « all » pour toutes les langues disponibles (~50 modèles cible -> anglais -> X en plus, ~6-7 Go de disque supplémentaires), ou vide pour désactiver.",
+      "env_variable": "REPLY_LANGUAGES",
+      "default_value": "all",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "nullable|string|max:512|regex:/^[a-zA-Z, -]*$/",
       "field_type": "text"
     },
     {

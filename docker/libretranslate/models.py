@@ -3,18 +3,25 @@ NeoHeberg · Egg LibreTranslate — installation des modèles de langue
 --------------------------------------------------------------------
 Exécuté par start.sh AVANT LibreTranslate, avec le Python du venv :
 
-    python models.py <sources> <cibles> <update:true|false>
+    python models.py <sources> <cibles> <réponses> <update:true|false>
 
-    <sources> : codes séparés par des virgules, ou « all »
-    <cibles>  : codes séparés par des virgules (ex : fr)
+    <sources>  : codes séparés par des virgules, ou « all »
+    <cibles>   : codes séparés par des virgules (ex : fr)
+    <réponses> : codes séparés par des virgules, « all », ou vide (aucune) :
+                 langues vers lesquelles on traduit DEPUIS les cibles (ex : la
+                 réponse du support, écrite en français, vers la langue du
+                 client)
+
+Deux directions sont donc installées : sources -> cibles, et cibles -> réponses.
 
 Pourquoi ne pas utiliser --load-only de LibreTranslate ?
   --load-only installe toutes les paires entre les langues listées, dans les
   DEUX sens. Or presque tous les modèles Argos passent par l'anglais
   (X -> en, en -> X) : pour traduire « n'importe quelle langue -> français »,
   il suffit de X -> en (pour chaque source) + en -> fr. Ce script n'installe
-  que les modèles utiles dans le bon sens (~2x moins de disque), LibreTranslate
-  fait ensuite le pivot X -> en -> fr tout seul.
+  que les modèles utiles dans le bon sens, LibreTranslate fait ensuite le
+  pivot X -> en -> fr tout seul. Sans langue de réponse, c'est ~2x moins de
+  disque ; avec « all » en réponse, on retombe sur ~tous les modèles.
 
 LibreTranslate est lancé via lt_run.py, qui désactive son installation
 automatique des modèles : il utilise exactement ce qui est installé ici.
@@ -36,6 +43,8 @@ from libretranslate.language import iso2model
 
 PIVOT = "en"
 STATE_FILE = Path.home() / ".neoheberg" / "models.conf"
+ALL_WORDS = ("all", "*", "toutes")
+NONE_WORDS = ("", "none", "aucune", "off", "false")
 
 
 def log(msg):
@@ -56,31 +65,78 @@ def parse_codes(value):
     return [iso2model(c) for c in codes]
 
 
-def wanted(pack, sources, targets):
-    """Le modèle sert-il à traduire une source vers une cible ?"""
-    src_ok = sources is None or pack.from_code in sources
-    if pack.to_code in targets and (src_ok or pack.from_code == PIVOT):
-        return True  # direct (source -> cible), ou en -> cible (pivot)
-    if pack.to_code == PIVOT and src_ok and pack.from_code not in targets:
+def parse_set(value, empty_is_all):
+    """None = toutes les langues, set() = aucune, sinon l'ensemble des codes."""
+    value = value.strip().lower()
+    if value in ALL_WORDS or (empty_is_all and value == ""):
+        return None
+    if value in NONE_WORDS:
+        return set()
+    return set(parse_codes(value))
+
+
+def label(codes):
+    return "toutes" if codes is None else ", ".join(sorted(codes))
+
+
+def config_part(codes):
+    return "all" if codes is None else ",".join(sorted(codes))
+
+
+def contains(codes, code):
+    return codes is None or code in codes
+
+
+def other_than(codes, excluded):
+    """Reste-t-il une langue dans `codes` en dehors de `excluded` ?"""
+    return codes is None or bool(codes - excluded)
+
+
+def wanted_for(pack, froms, tos):
+    """Le modèle sert-il à traduire une langue de `froms` vers une de `tos` ?"""
+    src, dst = pack.from_code, pack.to_code
+    if src != dst and contains(froms, src) and contains(tos, dst):
+        return True  # direct
+    if dst == PIVOT and src != PIVOT and contains(froms, src) and other_than(tos, {src, PIVOT}):
         return True  # source -> en (pivot)
+    if src == PIVOT and contains(tos, dst) and other_than(froms, {dst, PIVOT}):
+        return True  # en -> cible (pivot)
     return False
 
 
+def wanted(pack, directions):
+    return any(wanted_for(pack, froms, tos) for froms, tos in directions)
+
+
+def has_path(src, dst, pairs):
+    """Chemin de traduction src -> dst (direct, ou via l'anglais) ?"""
+    if (src, dst) in pairs:
+        return True
+    to_pivot = src == PIVOT or (src, PIVOT) in pairs
+    from_pivot = dst == PIVOT or (PIVOT, dst) in pairs
+    return to_pivot and from_pivot
+
+
 def main():
-    if len(sys.argv) != 4:
+    if len(sys.argv) != 5:
         print(__doc__)
         return 2
 
-    sources_arg = sys.argv[1].strip().lower()
-    targets = set(parse_codes(sys.argv[2]))
-    update = sys.argv[3].strip().lower() == "true"
+    sources = parse_set(sys.argv[1], empty_is_all=True)
+    targets = set(parse_codes(sys.argv[2].strip().lower()))
+    replies = parse_set(sys.argv[3], empty_is_all=False)
+    update = sys.argv[4].strip().lower() == "true"
 
     if not targets:
         log("Aucune langue cible définie — rien à installer.")
         return 1
 
-    sources = None if sources_arg in ("", "all", "*", "toutes") else set(parse_codes(sources_arg))
-    config = f"sources={'all' if sources is None else ','.join(sorted(sources))};targets={','.join(sorted(targets))}"
+    directions = [(sources, targets)]
+    if replies is None or replies:
+        directions.append((targets, replies))
+
+    config = (f"sources={config_part(sources)};targets={config_part(targets)}"
+              f";replies={config_part(replies)}")
 
     installed = package.get_installed_packages()
     installed_pairs = sorted(f"{p.from_code}>{p.to_code}" for p in installed)
@@ -101,32 +157,34 @@ def main():
     available = package.get_available_packages()
 
     known = {p.from_code for p in available} | {p.to_code for p in available}
-    for label, codes in (("source", sources or set()), ("cible", targets)):
-        unknown = sorted(codes - known)
+    for kind, codes in (("source", sources), ("cible", targets), ("de réponse", replies)):
+        unknown = sorted((codes or set()) - known)
         if unknown:
-            log(f"\x1b[33mLangue(s) {label} inconnue(s), ignorée(s) : {', '.join(unknown)}\x1b[0m")
+            log(f"\x1b[33mLangue(s) {kind} inconnue(s), ignorée(s) : {', '.join(unknown)}\x1b[0m")
 
-    selected = [p for p in available if wanted(p, sources, targets)]
+    selected = [p for p in available if wanted(p, directions)]
     if not selected:
         log("\x1b[31mAucun modèle ne correspond à la configuration.\x1b[0m")
         return 1
 
-    # Si une source n'a aucun chemin vers une cible (ni direct, ni via en),
-    # on le signale.
-    has_pivot_to = {t for t in targets if any(p.from_code == PIVOT and p.to_code == t for p in selected)}
-    for src in sorted(sources or []):
-        if src in targets or src not in known:
+    # Une langue explicitement demandée sans aucun chemin de traduction (ni
+    # direct, ni via en) est signalée.
+    pairs = {(p.from_code, p.to_code) for p in selected}
+    for froms, tos in directions:
+        if froms is None or tos is None:
             continue
-        direct = any(p.from_code == src and p.to_code in targets for p in selected)
-        via_en = src == PIVOT or (any(p.from_code == src and p.to_code == PIVOT for p in selected) and has_pivot_to)
-        if not (direct or via_en):
-            log(f"\x1b[33mAucun chemin de traduction pour « {src} » vers {', '.join(sorted(targets))}.\x1b[0m")
+        for src in sorted(froms & known):
+            for dst in sorted((tos & known) - {src}):
+                if not has_path(src, dst, pairs):
+                    log(f"\x1b[33mAucun chemin de traduction pour « {src} » vers « {dst} ».\x1b[0m")
 
     log(f"{len(selected)} modèle(s) nécessaire(s) "
-        f"(sources : {'toutes' if sources is None else ', '.join(sorted(sources))} -> cibles : {', '.join(sorted(targets))}).")
+        f"(sources : {label(sources)} -> cibles : {label(targets)}"
+        + (f" ; réponses : {label(targets)} -> {label(replies)}" if len(directions) > 1 else "")
+        + ").")
 
     by_pair = {(p.from_code, p.to_code): p for p in installed}
-    selected_pairs = {(p.from_code, p.to_code) for p in selected}
+    selected_pairs = pairs
 
     # Archives laissées par un téléchargement interrompu (arrêt du serveur
     # pendant l'installation) : Argos les supprime normalement après usage.

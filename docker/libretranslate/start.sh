@@ -54,6 +54,8 @@ LANGUAGES="$(echo "${LANGUAGES:-all}" | tr -d '[:space:]')"
 [[ -z "$LANGUAGES" ]] && LANGUAGES="all"
 TARGET_LANGUAGES="$(echo "${TARGET_LANGUAGES:-fr}" | tr -d '[:space:]')"
 [[ -z "$TARGET_LANGUAGES" ]] && TARGET_LANGUAGES="fr"
+# Langues de réponse (cibles -> réponses) : « all », liste, ou vide (aucune).
+REPLY_LANGUAGES="$(echo "${REPLY_LANGUAGES-all}" | tr -d '[:space:]')"
 THREADS="${THREADS:-4}"
 CHAR_LIMIT="${CHAR_LIMIT:--1}"
 REQ_LIMIT="${REQ_LIMIT:--1}"
@@ -82,6 +84,7 @@ echo -e "  ${DIM}─────────────────────
 echo -e "  Port        : ${SERVER_PORT}"
 echo -e "  Sources     : $( [[ "$LANGUAGES" == all ]] && echo "toutes les langues disponibles" || echo "$LANGUAGES")"
 echo -e "  Cibles      : ${TARGET_LANGUAGES}"
+echo -e "  Réponses    : $( case "${REPLY_LANGUAGES,,}" in ""|none|aucune|off|false) echo "désactivées" ;; all|toutes|\*) echo "${TARGET_LANGUAGES} -> toutes les langues disponibles" ;; *) echo "${TARGET_LANGUAGES} -> ${REPLY_LANGUAGES}" ;; esac)"
 echo -e "  Clés API    : ${API_KEYS}"
 echo -e "  Tunnel CF   : ${CF_TUNNEL_MODE}$( [[ "$CF_TUNNEL_MODE" != off ]] && echo " (auto-update : ${CF_AUTOUPDATE})")"
 echo -e "  ${DIM}Tapez « help » dans la console pour la liste des commandes.${R}"
@@ -89,7 +92,8 @@ echo ""
 
 # --- Arguments LibreTranslate ------------------------------------------------
 # Pas de --load-only / --update-models : les modèles sont gérés par models.py
-# (installation par direction : sources -> en -> cibles). Toutes les langues
+# (installation par direction : sources -> en -> cibles, et cibles -> en ->
+# langues de réponse). Toutes les langues
 # installées sont exposées, la source par défaut de l'interface est « auto »
 # (détection) et la cible la première langue cible.
 LT_ARGS=(--host 0.0.0.0 --port "$SERVER_PORT" --threads "$THREADS"
@@ -144,7 +148,7 @@ trap abort_models INT TERM
 if [[ ! -f "${HOME}/.neoheberg/models.conf" ]]; then
     log "Premier démarrage : téléchargement des modèles de langue (plusieurs minutes, ~150 Mo par modèle)..."
 fi
-"${LT_VENV}/bin/python" "${SCRIPT_DIR}/models.py" "$LANGUAGES" "$TARGET_LANGUAGES" "$UPDATE_MODELS" &
+"${LT_VENV}/bin/python" "${SCRIPT_DIR}/models.py" "$LANGUAGES" "$TARGET_LANGUAGES" "$REPLY_LANGUAGES" "$UPDATE_MODELS" &
 MODELS_PID=$!
 if ! wait "$MODELS_PID"; then
     # Sans aucun modèle, LibreTranslate n'aurait aucune langue : on s'arrête.
