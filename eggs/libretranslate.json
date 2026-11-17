@@ -29,6 +29,16 @@
   },
   "variables": [
     {
+      "name": "Port d'écoute",
+      "description": "Port sur lequel LibreTranslate écoute (1024 à 65535). Vide = port principal du serveur (recommandé). Un autre port n'est joignable de l'extérieur que s'il fait partie des allocations du serveur (onglet Network) ; sinon, uniquement via le Cloudflare Tunnel, qui suit automatiquement ce port.",
+      "env_variable": "LT_PORT",
+      "default_value": "",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "nullable|integer|between:1024,65535",
+      "field_type": "text"
+    },
+    {
       "name": "Langues source",
       "description": "Langues d'origine des textes à traduire : codes séparés par des virgules (ex : en,ru,ms,es,de) ou « all » pour toutes les langues disponibles (~50 modèles, ~6-7 Go de disque). Seuls les modèles source -> anglais sont installés ; la traduction vers la cible passe par l'anglais. La langue est détectée automatiquement.",
       "env_variable": "LANGUAGES",
@@ -130,7 +140,7 @@
     },
     {
       "name": "Cloudflare Tunnel — mode",
-      "description": "off : pas de tunnel. token : tunnel géré depuis le dashboard Cloudflare Zero Trust (nécessite le token ; configurez le service public vers http://localhost:<port du serveur>). quick : tunnel rapide trycloudflare.com sans compte (URL aléatoire, tests uniquement).",
+      "description": "off : pas de tunnel. token : tunnel géré depuis le dashboard Cloudflare Zero Trust (nécessite le token ; configurez le service public vers http://localhost:<port d'écoute>). quick : tunnel rapide trycloudflare.com sans compte (URL aléatoire, tests uniquement).",
       "env_variable": "CF_TUNNEL_MODE",
       "default_value": "off",
       "user_viewable": true,

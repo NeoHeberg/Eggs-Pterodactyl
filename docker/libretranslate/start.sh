@@ -49,7 +49,18 @@ if [[ ! -x "${LT_VENV}/bin/libretranslate" ]]; then
 fi
 
 # --- Variables du panel ------------------------------------------------------
-SERVER_PORT="${SERVER_PORT:-5000}"
+# Port : celui de la variable « Port d'écoute » (LT_PORT), sinon le port
+# principal alloué par Pterodactyl. Le tunnel (tunnel.sh) suit SERVER_PORT.
+ALLOC_PORT="${SERVER_PORT:-5000}"
+LT_PORT="$(echo "${LT_PORT:-}" | tr -d '[:space:]')"
+SERVER_PORT="$ALLOC_PORT"
+if [[ -n "$LT_PORT" ]]; then
+    if [[ "$LT_PORT" =~ ^[0-9]{1,5}$ ]] && (( 10#$LT_PORT >= 1024 && 10#$LT_PORT <= 65535 )); then
+        SERVER_PORT="$((10#$LT_PORT))"
+    else
+        warn "Port d'écoute « ${LT_PORT} » invalide (attendu : 1024 à 65535) — port principal ${ALLOC_PORT} utilisé."
+    fi
+fi
 LANGUAGES="$(echo "${LANGUAGES:-all}" | tr -d '[:space:]')"
 [[ -z "$LANGUAGES" ]] && LANGUAGES="all"
 TARGET_LANGUAGES="$(echo "${TARGET_LANGUAGES:-fr}" | tr -d '[:space:]')"
@@ -81,7 +92,11 @@ LT_VERSION="$("${LT_VENV}/bin/pip" show libretranslate 2>/dev/null | awk '/^Vers
 echo ""
 echo -e "  ${CYN}${B}NeoHeberg · LibreTranslate${R} ${DIM}v${LT_VERSION:-?}${R}"
 echo -e "  ${DIM}─────────────────────────────────────────${R}"
-echo -e "  Port        : ${SERVER_PORT}"
+if [[ "$SERVER_PORT" == "$ALLOC_PORT" ]]; then
+    echo -e "  Port        : ${SERVER_PORT}"
+else
+    echo -e "  Port        : ${SERVER_PORT} ${DIM}(personnalisé ; port principal du serveur : ${ALLOC_PORT})${R}"
+fi
 echo -e "  Sources     : $( [[ "$LANGUAGES" == all ]] && echo "toutes les langues disponibles" || echo "$LANGUAGES")"
 echo -e "  Cibles      : ${TARGET_LANGUAGES}"
 echo -e "  Réponses    : $( case "${REPLY_LANGUAGES,,}" in ""|none|aucune|off|false) echo "désactivées" ;; all|toutes|\*) echo "${TARGET_LANGUAGES} -> toutes les langues disponibles" ;; *) echo "${TARGET_LANGUAGES} -> ${REPLY_LANGUAGES}" ;; esac)"
@@ -89,6 +104,9 @@ echo -e "  Clés API    : ${API_KEYS}"
 echo -e "  Tunnel CF   : ${CF_TUNNEL_MODE}$( [[ "$CF_TUNNEL_MODE" != off ]] && echo " (auto-update : ${CF_AUTOUPDATE})")"
 echo -e "  ${DIM}Tapez « help » dans la console pour la liste des commandes.${R}"
 echo ""
+if [[ "$SERVER_PORT" != "$ALLOC_PORT" ]]; then
+    warn "Port ${SERVER_PORT} : joignable de l'extérieur seulement s'il fait partie des allocations du serveur (onglet Network du panel). Sinon, uniquement via le tunnel Cloudflare (service http://localhost:${SERVER_PORT})."
+fi
 
 # --- Arguments LibreTranslate ------------------------------------------------
 # Pas de --load-only / --update-models : les modèles sont gérés par models.py
